@@ -115,8 +115,9 @@ GameMaster.GameMaster = function() {
 	scrambleButton.value = 'Scramble!';
 	scrambleButton.type = 'button';
 	scrambleButton.addEventListener('click', function(e) {
-		var scramble = gameInstances[USERNAME].game.generateScramble();
-		GameClient.sendScramble(scramble);
+		// TODO - what if they click on scramble before we've generated boards?
+		var scramble = gameInstances[username].game.generateScramble();
+		that.sendScramble(scramble);
 	});
 	adminInfoDiv.appendChild(scrambleButton);
 
@@ -142,12 +143,12 @@ GameMaster.GameMaster = function() {
 		} else {
 			startstamp = new Date().getTime();
 			$(inspectionCountdownDiv).hide();
-			gameInstances[USERNAME].game.endInspection();
+			gameInstances[username].game.endInspection();
 		}
 	}
 
 	function moveApplied(m) {
-		GameClient.sendMove(m, startstamp);
+		that.sendMove(m);
 	}
 
 	// Stuff the admin sets
@@ -162,7 +163,7 @@ GameMaster.GameMaster = function() {
 		refreshBoards();
 	};
 	var inspectionStart;
-	this.handleScramble = function(scramble) {
+	now.handleScramble = function(scramble) {
 		for(var memberName in gameInstances) {
 			gameInstances[memberName].game.setScramble(scramble);
 		}
@@ -202,27 +203,44 @@ GameMaster.GameMaster = function() {
 		refreshBoards();
 		refreshAdminInfo();
 	};
-	
-	this.handleMove = function(msg) {
-		assert(msg.nick in gameInstances);
-		var gameInstance = gameInstances[msg.nick];
-		var startstamp = msg.data.startstamp;
-		if(msg.nick != USERNAME) {
-			console.log(msg);
-			gameInstance.game.applyMove(msg.data.move);
+
+	now.handleMove = function(nick, move, timestamp, startstamp) {
+		var gameInstance = gameInstances[nick];
+		assert(gameInstance);
+		if(nick != username) {
+			gameInstance.game.applyMove(move);
 		}
 		if(gameInstance.game.isFinished()) {
-			var totalTime = (msg.timestamp - startstamp)/1000;
-			$(gameInstance.nameDiv).text(msg.nick + " " + totalTime.toFixed(2) + " seconds");
+			var totalTime = (timestamp - startstamp)/1000;
+			$(gameInstance.nameDiv).text(nick + " " + totalTime.toFixed(2) + " seconds");
 		}
 	};
 
-	this.handleChat = function(msg) {
+	now.handleChat = function(nick, msg) {
+		console.log(msg);
 	};
 
+	// TODO - consolidate error checking!
 	this.sendGameInfo = function() {
 		var gameInfo = { gameName: gameDropdown.value, inspectionSeconds: parseInt(inspectionSecondsField.value, 10) };
 		now.setGameInfo(username, gameInfo, function(error) {
+			if(error) {
+				console.log(error);
+			}
+		});
+	};
+
+	this.sendScramble = function(scramble) {
+		now.sendScramble(username, scramble, function(error) {
+			if(error) {
+				console.log(error);
+			}
+		});
+	};
+
+	this.sendMove = function(move) {
+		var timestamp = new Date().getTime();
+		now.sendMove(username, move, timestamp, startstamp, function(error) {
 			if(error) {
 				console.log(error);
 			}

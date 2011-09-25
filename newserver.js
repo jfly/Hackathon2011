@@ -159,6 +159,7 @@ everyone.now.joinChannel = function(nick, channelName, callback) {
 	callback();
 };
 
+// TODO - consolidate error checking
 everyone.now.setGameInfo = function(nick, gameInfo, callback) {
 	var user = nick_user[nick];
 	if(!user) {
@@ -174,13 +175,41 @@ everyone.now.setGameInfo = function(nick, gameInfo, callback) {
 	channel.getGroup().now.handleGameInfo(gameInfo);
 };
 
+everyone.now.sendScramble = function(nick, scramble, callback) {
+	var user = nick_user[nick];
+	if(!user) {
+		callback("User " + nick + " not found");
+		return;
+	}
+	if(!user.admin) {
+		callback("User " + nick + " not admin");
+		return;
+	}
+
+	var channel = user.channel;
+	channel.getGroup().now.handleScramble(scramble);
+};
+
+everyone.now.sendMove = function(nick, move, timestamp, startstamp, callback) {
+	var user = nick_user[nick];
+	if(!user) {
+		callback("User " + nick + " not found");
+		return;
+	}
+
+	var channel = user.channel;
+	channel.getGroup().now.handleMove(nick, move, timestamp, startstamp);
+};
+
 nowjs.on('connect', function() {
   console.log("Joined: " + this.user.clientId);
 });
 
 
 nowjs.on('disconnect', function(){
-  var user = clientId_user[this.user.clientId];
-  user.destroy();
   console.log("Left: " + this.user.clientId);
+  var user = clientId_user[this.user.clientId];
+  if(user) {
+	  user.destroy();
+  }
 });
