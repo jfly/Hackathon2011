@@ -199,15 +199,16 @@ var GameMaster = new function() {
 		refreshAdminInfo();
 	};
 	
-	this.handleMove = function(move) {
-		assert(move.nick in gameInstances);
-		var gameInstance = gameInstances[move.nick];
-		if(move.nick != USERNAME) {
-			gameInstance.game.applyMove(move.move);
+	this.handleMove = function(msg) {
+		assert(msg.nick in gameInstances);
+		var gameInstance = gameInstances[msg.nick];
+		var startstamp = msg.data.startstamp;
+		if(msg.nick != USERNAME) {
+			gameInstance.game.applyMove(msg.data.move);
 		}
 		if(gameInstance.game.isFinished()) {
-			var totalTime = (move.timestamp - move.startstamp)/1000;
-			$(gameInstance.nameDiv).text(move.nick + " " + totalTime.toFixed(2) + " seconds");
+			var totalTime = (msg.timestamp - startstamp)/1000;
+			$(gameInstance.nameDiv).text(msg.nick + " " + totalTime.toFixed(2) + " seconds");
 		}
 	};
 
@@ -227,6 +228,10 @@ var GameMaster = new function() {
 				break;
 			case "scramble":
 				that.handleScramble(msg.data);
+				break;
+			case "move":
+				// TODO - yuck, should handleXXX() take a msg, rather than msg.data?
+				that.handleMove(msg);
 				break;
 			default:
 				console.log(msg);
@@ -270,9 +275,9 @@ var GameClient = new function() {
 	};
 
 	this.sendMove = function(move, startstamp) {
-		var data = { data: JSON.stringify({ move: move, startstamp: startstamp }) };
+		var data = { type: 'move', data: JSON.stringify({ move: move, startstamp: startstamp }) };
 		sendMessage('/send', data, function(message) {
-			console.log(message);
+			//console.log(message);
 		});
 	};
 
