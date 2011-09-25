@@ -3,12 +3,22 @@
 
 		<script type='text/javascript' src='stacktrace.js'></script>
 		<script type='text/javascript' src='assert.js'></script>
+		<script type='text/javascript' src='/nowjs/now.js'></script>
 		<script type='text/javascript' src='jquery-1.6.4.js'></script>
 		<script type='text/javascript' src='GameMaster.js'></script>
 		<script type='text/javascript' src='ButtonGame.js'></script>
 		<script type='text/javascript'>
+			now.ready(function() {
+				var gm = new GameMaster.GameMaster();
+				var channel = "PimpsAtSea"; // TODO - configurable later on
+				var username = prompt('Username?'); // TODO - configurable, don't allow duplicates!
+				//var username = 'PimpAtSea';
+				gm.connect(username, channel);
+
+				gm.render(document.body);
+			});
 			window.addEventListener('load', function() {
-				GameMaster.render(document.body);
+				//GameMaster.render(document.body);
 
 				/*
 				var members = {};
