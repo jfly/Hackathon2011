@@ -1,66 +1,110 @@
 <html>
 	<head>
 
+		<title>Hackathon2011</title>
+
 		<script type='text/javascript' src='stacktrace.js'></script>
 		<script type='text/javascript' src='assert.js'></script>
 		<script type='text/javascript' src='/nowjs/now.js'></script>
 		<script type='text/javascript' src='jquery-1.6.4.js'></script>
 		<script type='text/javascript' src='GameMaster.js'></script>
+		<script type='text/javascript' src='GameMasterGui.js'></script>
 		<script type='text/javascript' src='ButtonGame.js'></script>
 		<script type='text/javascript'>
-			now.ready(function() {
-				var gm = new GameMaster.GameMaster();
-				var channel = "PimpsAtSea"; // TODO - configurable later on
-				var username = prompt('Username?'); // TODO - configurable, don't allow duplicates!
-				//var username = 'PimpAtSea';
-				gm.connect(username, channel);
+			(function() {
 
-				gm.render(document.body);
+			var connectionStatus;
+			$(document).ready(function() {
+				connectionStatus = $('#connectionStatus');
+				connectionStatus.text("Connecting...");
 			});
-			window.addEventListener('load', function() {
-				//GameMaster.render(document.body);
 
-				/*
-				var members = {};
-				members['PimpAtSea'] = { admin: true, nick: 'PimpAtSea' };
-				members['dk'] = { admin: false, nick: 'dk' };
-				GameMaster.handleChannelMembers(members);
-				GameMaster.handleGameInfo({ gameName: '4x4ButtonGame', inspectionSeconds: 3 });
-				GameMaster.handleGameInfo({ gameName: '3x3ButtonGame', inspectionSeconds: 3 });
+			var gm, gmGui;
+			now.ready(function() {
+				connectionStatus.hide();
+				// This function appears to get called multiple times. 
+				// One situation in which this happens is when nowjs
+				// reestablishes a connection with the server.
+				if(!gm) {
+					gm = new GameMaster.GameMaster();
+					gmGui = new GameMasterGui.GameMasterGui(gm);
+				}
 
-				setTimeout(function() {
-					//GameMaster.handleScramble([1,0,2,3,4,5,6,7,8]);
+				gm.joinChannel();
+			});
 
-					var startTime = new Date().getTime() + 3000;
-					var moves = [ [0, 1], [0, 0], [0,2], [1, 0], [1,1], [1,2], [2,0], [2,1], [2,2] ];
-					function doMove() {
-						var move = moves.shift();
-						GameMaster.handleMove({ nick: 'dk', move: move, timestamp: new Date().getTime(), startstamp: startTime});
-						if(moves.length > 0) {
-							setTimeout(doMove, 500);
-						} else {
-						//	GameMaster.handleScramble([0,2,1,3,4,5,6,7,8]);
-						}
+			var disconnected = true;
+			var interestingEvents = { 'disconnect': "Disconnected",
+				'reconnect': null,
+				'reconnect_failed': null,
+				'connect_failed': null,
+				'error': null,
+				'retry': null };
+			for(var i = 0; i < interestingEvents.length; i++) {
+				var interestingEvent = interestingEvents[i];
+				now.core.on(interestingEvent, function(interestingEvent) {
+					if(interestingEvent == 'disconnect') {
+						disconnected = true;
 					}
-					setTimeout(doMove, 3500);
-				}, 1000);
-				*/
+					connectionStatus.show();
+					connectionStatus.text(interestingEvent);
+				}.bind(null, interestingEvent));
+			}
 
-				/*
-				var game = new ButtonGame(true);
-				document.body.appendChild(game.getDiv());
-				var scramble = game.generateScramble();
-				game.setScramble(scramble);
+			var pingerPollerRunning = false;
+			now.ready(function() {
+				disconnected = false;
 
-				game.setMoveCallback(function(move) {
-					console.log(move);
-				});
-				*/
-			}, false);
+				if(pingerPollerRunning) {
+					return;
+				}
+				pingerPollerRunning = true;
+
+				var HEARTBEAT_PERIOD = 2000;
+				var HEARTBEAT_THRESHOLD = 2*HEARTBEAT_PERIOD;
+
+				var lastHeartbeat = new Date().getTime();
+				function pinger() {
+					now.ping(function() {
+						lastHeartbeat = new Date().getTime();
+						setTimeout(pinger, HEARTBEAT_PERIOD);
+					});
+				}
+				pinger();
+				
+				function poller() {
+					var timeSinceLastHeartbeat = new Date().getTime() - lastHeartbeat;
+					if(timeSinceLastHeartbeat > HEARTBEAT_THRESHOLD) {
+						connectionStatus.show();
+						connectionStatus.text('Having difficulty talking to server');
+					} else {
+						//connectionStatus.hide();
+					}
+					setTimeout(poller, HEARTBEAT_PERIOD/2);
+				}
+				poller();
+			});
+
+
+			})();
 		</script>
 
 		<link rel="stylesheet" href="GameMaster.css" type="text/css" />
+		<style type="text/css">
+			#connectionStatus {
+				position: absolute;
+				top: 0px;
+				left: 15%; /* 100-70/2 */
+				width: 70%;
+				text-align: center;
+				background: red;
+				border-radius: 0 0 10px 10px;
+				box-shadow: 5px 5px 5px #ccc;
+				z-index: 1
+			}
+		</style>
 	</head>
 	<body>
+		<div id='connectionStatus'></div>
 	</body>
 </html>

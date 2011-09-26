@@ -110,20 +110,26 @@ function Channel(channelName) {
 		var userNames = Object.keys(users);
 		if(user == adminUser) {
 			user.setAdmin(false);
-			// TODO - should choose next oldest User!
-			adminUser = users[userNames[0]];
-			adminUser.setAdmin(true);
+			adminUser = null;
+		}
+
+		if(userNames.length == 0) {
+			// This channel is now empty, so we can delete it
+			delete channels[channelName];
+		} else {
+			// There are some users remaining. We need to appoint a new
+			// admin if the old one left.
+			if(!adminUser) {
+				// TODO - should choose next oldest User!
+				adminUser = users[userNames[0]];
+				adminUser.setAdmin(true);
+			}
 		}
 
 		// Remove this user from the underlying nodejs group...
 		that.getGroup().removeUser(user.clientId);
 		// and notify everyone in the channel of the new members list
 		this.sendMemberList();
-
-		if(userNames.length == 0) {
-			// This channel is now empty, so we can delete it
-			delete channels[channelName];
-		}
 	};
 
 	this.getGroup = function() {
@@ -149,7 +155,7 @@ everyone.now.joinChannel = function(nick, channelName, callback) {
 };
 
 // TODO - consolidate error checking
-everyone.now.setGameInfo = function(nick, gameInfo, callback) {
+everyone.now.sendGameInfo = function(nick, gameInfo, callback) {
 	var user = nick_user[nick];
 	if(!user) {
 		callback("User " + nick + " not found");
@@ -189,6 +195,10 @@ everyone.now.sendMove = function(nick, move, timestamp, startstamp, callback) {
 	var channel = user.channel;
 	channel.getGroup().now.handleMove(nick, move, timestamp, startstamp);
 };
+
+everyone.now.ping = function(callback) {
+	callback();
+}
 
 nowjs.on('connect', function() {
   console.log("Joined: " + this.user.clientId);
