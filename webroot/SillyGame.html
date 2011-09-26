@@ -78,7 +78,7 @@
 						connectionStatus.show();
 						connectionStatus.text('Having difficulty talking to server');
 					} else {
-						//connectionStatus.hide();
+						connectionStatus.hide();
 					}
 					setTimeout(poller, HEARTBEAT_PERIOD/2);
 				}

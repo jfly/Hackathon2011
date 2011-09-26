@@ -50,12 +50,11 @@ GameMaster.GameMaster = function() {
 	};
 	now.handleChannelMembers = function(members_) {
 		members = members_;
-		myself = null;
 		if(username in members) {
 			myself = members[username];
 		} else {
 			myself = null;
-			assert(false);
+			assert(false, username + " not found in channel members: " + Object.keys(members));
 			return;
 		}
 
@@ -86,7 +85,7 @@ GameMaster.GameMaster = function() {
 		assert(myself);
 		assert(myself.admin);
 		var gameInfo = gui.getGameInfo();
-		now.sendGameInfo(username, gameInfo, function(error) {
+		now.sendGameInfo(gameInfo, function(error) {
 			if(error) {
 				console.log(error);
 			}
@@ -96,7 +95,7 @@ GameMaster.GameMaster = function() {
 	this.sendScramble = function(scramble) {
 		assert(myself);
 		assert(myself.admin);
-		now.sendScramble(username, scramble, function(error) {
+		now.sendScramble(scramble, function(error) {
 			if(error) {
 				console.log(error);
 			}
@@ -105,7 +104,7 @@ GameMaster.GameMaster = function() {
 
 	this.sendMove = function(move, startstamp) {
 		var timestamp = new Date().getTime();
-		now.sendMove(username, move, timestamp, startstamp, function(error) {
+		now.sendMove(move, timestamp, startstamp, function(error) {
 			if(error) {
 				console.log(error);
 			}

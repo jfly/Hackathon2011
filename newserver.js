@@ -42,9 +42,9 @@ var everyone = nowjs.initialize(httpServer);
 // TODO - clean up users & channels
 var nick_user = {};
 var clientId_user = {};
-function User(nick, clientId) {
-	this.nick = nick;
-	this.clientId = clientId;
+function User(nick_, clientId_) {
+	this.nick = nick_;
+	this.clientId = clientId_;
 
 	this.channel = null;
 	function part() {
@@ -62,6 +62,17 @@ function User(nick, clientId) {
 		delete nick_user[this.nick];
 		delete clientId_user[this.clientId];
 	};
+	this.setNick = function(newNick) {
+		assert.ok(!(newNick in nick_user));
+		var oldNick = that.nick;
+
+		delete nick_user[oldNick];
+		that.nick = newNick;
+		nick_user[that.nick] = that;
+
+		assert.ok(that.channel);
+		that.channel.memberRenamed(oldNick, newNick);
+	};
 
 	this.admin = false;
 	this.setAdmin = function(isAdmin) {
@@ -70,28 +81,22 @@ function User(nick, clientId) {
 
 	var that = this;
 }
-function getUser(nick, clientId) {
-	var user = nick_user[nick];
-	if(!user) {
-		user = new User(nick, clientId);
-		nick_user[nick] = user;
-		clientId_user[clientId] = user;
-	}
-	if(user.clientId != clientId) {
-		// TODO - comment!
-		user.destroy();
-		user = getUser(nick, clientId);
-	}
-	assert.equal(user.clientId, clientId);
-	return user;
-}
 
 var channels = {};
 function Channel(channelName) {
+	this.channelName = channelName;
 	var users = {};
 	var adminUser = null;
 	this.sendMemberList = function() {
 		that.getGroup().now.handleChannelMembers(users);
+	};
+	this.memberRenamed = function(oldNick, newNick) {
+		var user = users[oldNick];
+		assert.equal(user.nick, newNick);
+		assert.ok(user);
+		delete users[oldNick];
+		users[newNick] = user;
+		that.sendMemberList();
 	};
 	this.addUser = function(user) {
 		users[user.nick] = user;
@@ -148,53 +153,80 @@ function getChannel(channelName) {
 }
 
 everyone.now.joinChannel = function(nick, channelName, callback) {
-	var user = getUser(nick, this.user.clientId);
+	var clientId = this.user.clientId;
+	var user = clientId_user[clientId];
+	if(!user) {
+		// The clientId wants to be named nick
+		if(nick in nick_user) {
+			callback('Nick: ' + nick + " in use by clientId: " + nick_user[nick].clientId);
+			return;
+		}
+		user = new User(nick, clientId);
+		nick_user[nick] = user;
+		clientId_user[clientId] = user;
+	} else {
+		if(user.nick != nick) {
+			// The clientId wants to rename himself to nick
+			if(nick in nick_user) {
+				callback('Nick: ' + nick + " in use by clientId: " + nick_user[nick].clientId);
+				return;
+			}
+			// Note: In the event that the client does a rename *and* a join, we'll
+			// send out more messages than are strictly necessary. That's fine, though.
+			user.setNick(nick);
+		}
+	}
+	assert.ok(user);
+
 	var channel = getChannel(channelName);
-	user.join(channel); // TODO - can this fail?
+	if(user.channel != channel) {
+		user.join(channel);
+	}
 	callback();
 };
 
-// TODO - consolidate error checking
-everyone.now.sendGameInfo = function(nick, gameInfo, callback) {
-	var user = nick_user[nick];
-	if(!user) {
-		callback("User " + nick + " not found");
-		return;
-	}
-	if(!user.admin) {
-		callback("User " + nick + " not admin");
-		return;
-	}
+function authenticate_authorize(func, authorize) {
+	return function() {
+		// The last argument to each function must be a callback
+		var args = [];
+		for(var i = 0; i < arguments.length; i++) {
+			args[i] = arguments[i];
+		}
+		var callback = args[args.length-1];
+		var user = clientId_user[this.user.clientId];
+		if(!user) {
+			callback("User for clientId " + this.user.clientId + " not found");
+			return;
+		}
+		if(authorize && !user.admin) {
+			callback("User " + user.nick + " not admin");
+			return;
+		}
+		args.unshift(user);
+		func.apply(this, args);
+	};
+}
+function auth(func) {
+	return authenticate_authorize(func, false);
+}
+function auth_admin(func) {
+	return authenticate_authorize(func, true);
+}
 
+everyone.now.sendGameInfo = auth(function(user, gameInfo, callback) {
 	var channel = user.channel;
 	channel.getGroup().now.handleGameInfo(gameInfo);
-};
+});
 
-everyone.now.sendScramble = function(nick, scramble, callback) {
-	var user = nick_user[nick];
-	if(!user) {
-		callback("User " + nick + " not found");
-		return;
-	}
-	if(!user.admin) {
-		callback("User " + nick + " not admin");
-		return;
-	}
-
+everyone.now.sendScramble = auth(function(user, scramble, callback) {
 	var channel = user.channel;
 	channel.getGroup().now.handleScramble(scramble);
-};
+});
 
-everyone.now.sendMove = function(nick, move, timestamp, startstamp, callback) {
-	var user = nick_user[nick];
-	if(!user) {
-		callback("User " + nick + " not found");
-		return;
-	}
-
+everyone.now.sendMove = auth_admin(function(user, move, timestamp, startstamp, callback) {
 	var channel = user.channel;
-	channel.getGroup().now.handleMove(nick, move, timestamp, startstamp);
-};
+	channel.getGroup().now.handleMove(user.nick, move, timestamp, startstamp);
+});
 
 everyone.now.ping = function(callback) {
 	callback();

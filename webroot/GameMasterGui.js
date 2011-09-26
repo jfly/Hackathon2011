@@ -15,6 +15,21 @@ DEFAULT_INSPECTION = 15;
 		inspectionCountdownDiv.id = 'inspection';
 		infoDiv = document.createElement('div');
 
+		var usernameField = $('<input />');
+		usernameField.appendTo(infoDiv);
+		infoDiv.appendChild(document.createTextNode('#'));
+		var channelField = $('<input />');
+		channelField.appendTo(infoDiv);
+		$('<br />').appendTo(infoDiv);
+
+		function joinChannel() {
+			var username = usernameField.val();
+			var channel = channelField.val();
+			gameMaster.joinChannel(username, channel);
+		}
+		usernameField.change(joinChannel);
+		channelField.change(joinChannel);
+
 		gameDropdown = document.createElement('select');
 		var games = GameMaster.getGames();
 		for(var gameName in games) {
@@ -54,7 +69,10 @@ DEFAULT_INSPECTION = 15;
 		document.body.appendChild(inspectionCountdownDiv);
 
 		function refreshInfo() {
-			if(gameMaster.getMyself().admin) {
+			var myself = gameMaster.getMyself();
+			usernameField.val(myself.nick);
+			channelField.val(myself.channel.channelName);
+			if(myself.admin) {
 				gameDropdown.disabled = false;	
 				inspectionSecondsField.disabled = false;	
 				$(scrambleButton).show();
