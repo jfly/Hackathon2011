@@ -1,0 +1,6 @@
+**** Client side ****
+-gracefully handle node restarting/losing connection
+	-now.js's client side library seems to handle this by eventually recalling now.ready()
+
+**** Server side ****
+-return error message for people trying to "steal" nicks
