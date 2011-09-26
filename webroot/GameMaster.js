@@ -94,7 +94,7 @@ GameMaster.GameMaster = function() {
 	}
 	gameDropdown.addEventListener('change', function(e) {
 		gameSelected(gameDropdown.value);
-	});
+	}, false);
 	adminInfoDiv.appendChild(gameDropdown);
 
 	inspectionSecondsField = document.createElement('input');
@@ -105,7 +105,7 @@ GameMaster.GameMaster = function() {
 	inspectionSecondsField.addEventListener('change', function(e) {
 		gameInfo.inspectionSeconds = inspectionSecondsField.value;
 		now.handleGameInfo(gameInfo); // TODO -this should be done by the server!
-	});
+	}, false);
 	$(inspectionSecondsField).change(function() {
 		that.sendGameInfo();
 	});
@@ -118,7 +118,7 @@ GameMaster.GameMaster = function() {
 		// TODO - what if they click on scramble before we've generated boards?
 		var scramble = gameInstances[username].game.generateScramble();
 		that.sendScramble(scramble);
-	});
+	}, false);
 	adminInfoDiv.appendChild(scrambleButton);
 
 	function gameSelected(gameName) {

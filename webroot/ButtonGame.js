@@ -45,7 +45,7 @@
 						button.style.height = '100%';
 						button.addEventListener('click', function(e) {
 							buttonClicked(this);
-						});
+						}, false);
 						cell.appendChild(button);
 					}
 				}
@@ -102,5 +102,7 @@
 
 	GameMaster.addGame(ButtonGameMaker(3, 3));
 	GameMaster.addGame(ButtonGameMaker(4, 4));
+	GameMaster.addGame(ButtonGameMaker(5, 5));
+	GameMaster.addGame(ButtonGameMaker(10, 5));
 
 })();
