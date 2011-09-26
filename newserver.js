@@ -4,17 +4,6 @@ var url = require("url");
 var sys = require('sys');
 var assert = require('assert');
 
-//Object.prototype.keys = function() {
-function keys(obj) {
-	var keys = [];
-	for(var key in obj) {
-		if(obj.hasOwnProperty(key)) {
-			keys.push(key);
-		}
-	}
-	return keys;
-};
-
 WEBROOT = 'webroot'
 
 var httpServer = require('http').createServer(function(req, res) {
@@ -118,7 +107,7 @@ function Channel(channelName) {
 	this.removeUser = function(user) {
 		delete users[user.nick];
 
-		var userNames = keys(users);
+		var userNames = Object.keys(users);
 		if(user == adminUser) {
 			user.setAdmin(false);
 			// TODO - should choose next oldest User!
