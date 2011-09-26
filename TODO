@@ -10,3 +10,4 @@
 
 **** Server side ****
 -return error message for people trying to "steal" nicks
+	-client should deal with this

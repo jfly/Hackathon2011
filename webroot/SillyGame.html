@@ -7,21 +7,18 @@
 		<script type='text/javascript' src='assert.js'></script>
 		<script type='text/javascript' src='/nowjs/now.js'></script>
 		<script type='text/javascript' src='jquery-1.6.4.js'></script>
+
+		<script type='text/javascript' src='StatusBar.js'></script>
 		<script type='text/javascript' src='GameMaster.js'></script>
 		<script type='text/javascript' src='GameMasterGui.js'></script>
 		<script type='text/javascript' src='ButtonGame.js'></script>
+
 		<script type='text/javascript'>
 			(function() {
-
-			var connectionStatus;
-			$(document).ready(function() {
-				connectionStatus = $('#connectionStatus');
-				connectionStatus.text("Connecting...");
-			});
-
+			StatusBar.setError('init', 'Connecting...');
 			var gm, gmGui;
 			now.ready(function() {
-				connectionStatus.hide();
+				StatusBar.setError('init', null);
 				// This function appears to get called multiple times. 
 				// One situation in which this happens is when nowjs
 				// reestablishes a connection with the server.
@@ -33,6 +30,7 @@
 				gm.joinChannel();
 			});
 
+			/* TODO - merge w/ gm.errors somehow
 			var disconnected = true;
 			var interestingEvents = { 'disconnect': "Disconnected",
 				'reconnect': null,
@@ -50,6 +48,7 @@
 					connectionStatus.text(interestingEvent);
 				}.bind(null, interestingEvent));
 			}
+			*/
 
 			var pingerPollerRunning = false;
 			now.ready(function() {
@@ -71,14 +70,13 @@
 					});
 				}
 				pinger();
-				
+
 				function poller() {
 					var timeSinceLastHeartbeat = new Date().getTime() - lastHeartbeat;
 					if(timeSinceLastHeartbeat > HEARTBEAT_THRESHOLD) {
-						connectionStatus.show();
-						connectionStatus.text('Having difficulty talking to server');
+						StatusBar.setError('poller', 'Having difficulty talking to server');
 					} else {
-						connectionStatus.hide();
+						StatusBar.setError('poller', null);
 					}
 					setTimeout(poller, HEARTBEAT_PERIOD/2);
 				}
@@ -90,21 +88,9 @@
 		</script>
 
 		<link rel="stylesheet" href="GameMaster.css" type="text/css" />
-		<style type="text/css">
-			#connectionStatus {
-				position: absolute;
-				top: 0px;
-				left: 15%; /* 100-70/2 */
-				width: 70%;
-				text-align: center;
-				background: red;
-				border-radius: 0 0 10px 10px;
-				box-shadow: 5px 5px 5px #ccc;
-				z-index: 1
-			}
+		<link rel="stylesheet" href="StatusBar.css" type="text/css" />
 		</style>
 	</head>
 	<body>
-		<div id='connectionStatus'></div>
 	</body>
 </html>

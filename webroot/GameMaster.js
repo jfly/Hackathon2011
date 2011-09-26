@@ -80,35 +80,22 @@ GameMaster.GameMaster = function() {
 		gui.handleChat(nick, msg);
 	};
 
-	// TODO - consolidate error checking!
 	this.sendGameInfo = function() {
 		assert(myself);
 		assert(myself.admin);
 		var gameInfo = gui.getGameInfo();
-		now.sendGameInfo(gameInfo, function(error) {
-			if(error) {
-				console.log(error);
-			}
-		});
+		now.sendGameInfo(gameInfo, errorHandler('sendGameInfo'));
 	};
 
 	this.sendScramble = function(scramble) {
 		assert(myself);
 		assert(myself.admin);
-		now.sendScramble(scramble, function(error) {
-			if(error) {
-				console.log(error);
-			}
-		});
+		now.sendScramble(scramble, errorHandler('sendScramble'));
 	};
 
 	this.sendMove = function(move, startstamp) {
 		var timestamp = new Date().getTime();
-		now.sendMove(move, timestamp, startstamp, function(error) {
-			if(error) {
-				console.log(error);
-			}
-		});
+		now.sendMove(move, timestamp, startstamp, errorHandler('sendMove'));
 	};
 
 	var username, channel;
@@ -116,13 +103,19 @@ GameMaster.GameMaster = function() {
 		username = username_ || 'Pimp' + now.core.clientId;
 		channel = channel_ || "PimpsAtSea"; // TODO - configurable later on
 		myself = null;
-		now.joinChannel(username, channel, function(error) {
-			if(error) {
-				alert(error);
-			}
-		});
+		now.joinChannel(username, channel, errorHandler('joinChannel'));
 	};
 
+	function errorHandler(errorType) {
+		return function(error) {
+			// TODO - retrieve username from server & update gui?
+			if(error) {
+				StatusBar.setError('joinChannel', error);
+			} else {
+				StatusBar.setError('joinChannel', null);
+			}
+		};
+	};
 
 	var that = this;
 };
