@@ -37,6 +37,6 @@ function assert(condition, message) {
 		} else {
 			assertion = 'Could not retrieve line of code at ' + assertionFrame;
 		}
-		window.onerror("Assertion failure!", file, line, stackTrace);
+		window.onerror("Assertion failure!\n" + message, file, line, stackTrace);
 	}
 }

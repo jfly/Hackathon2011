@@ -3,15 +3,6 @@
 	function ButtonGameMaker(WIDTH, HEIGHT) {
 
 		var ButtonGame = function(moveCallback) {
-			this.generateScramble = function() {
-				var cellCount = WIDTH*HEIGHT;
-				var scramble = [];
-				for(var i = 0; i < cellCount; i++) {
-					scramble.push(i);
-				}
-				scramble.sort(function() { return 0.5-Math.random(); });
-				return scramble;
-			};
 			var lastButtonValue = -1;
 			var buttons = null;
 			this.setScramble = function(scramble) {
@@ -35,11 +26,15 @@
 						var button = document.createElement('input');
 						buttonRow.push(button);
 						var index = WIDTH*i+j;
-						var buttonValue = (scramble == null ? index : scramble[index]);
-						button.buttonValue = buttonValue;
+						if(scramble === null) {
+							$(button).hide();
+						} else {
+							var buttonValue = (scramble == null ? index : scramble[index]);
+							button.buttonValue = buttonValue;
+							button.value = buttonValue;
+						}
 						button.iIndex = i;
 						button.jIndex = j;
-						button.value = buttonValue;
 						button.type = 'button';
 						button.style.width = '100%';
 						button.style.height = '100%';
@@ -96,6 +91,15 @@
 			this.setScramble(null);
 		};
 
+		ButtonGame.generateScramble = function() {
+			var cellCount = WIDTH*HEIGHT;
+			var scramble = [];
+			for(var i = 0; i < cellCount; i++) {
+				scramble.push(i);
+			}
+			scramble.sort(function() { return 0.5-Math.random(); });
+			return scramble;
+		};
 		ButtonGame.gameName = WIDTH + "x" + HEIGHT + "ButtonGame";
 		return ButtonGame;
 	}
