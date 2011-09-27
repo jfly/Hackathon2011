@@ -8,5 +8,6 @@
 	-show timer
 -deal with people joining in the middle of a solve
 -improve behavior of Status bar (see comments in StatusBar.js)
+-add chat support
 
 **** Server side ****

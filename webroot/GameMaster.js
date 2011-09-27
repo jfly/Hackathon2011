@@ -140,7 +140,16 @@ GameMaster.GameMaster = function() {
 			if(!error) {
 				StatusBar.setError('joinChannel', null);
 			} else if(error == GM.NICK_IN_USE) {
-				var newDesiredNick = desiredNick + "1"; // TODO - actually increment the number!
+				var prefix_intSuffix = desiredNick.match(/([^\d]*)(\d*)/);
+				var prefix = prefix_intSuffix[1];
+				var suffix = prefix_intSuffix[2];
+				var newSuffix = null;
+				if(suffix == '') {
+					newSuffix = '1';
+				} else {
+					newSuffix = 1 + parseInt(suffix, 10);
+				}
+				var newDesiredNick = prefix + newSuffix;
 				StatusBar.setError('joinChannel', desiredNick + ' in use, attempting ' + newDesiredNick);
 				that.joinChannel(newDesiredNick, desiredChannelName);
 			} else {
