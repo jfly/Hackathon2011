@@ -39,9 +39,50 @@ httpServer.listen(8001);
 
 var everyone = nowjs.initialize(httpServer);
 
+function UserSet() {
+	this.nick_user = {};
+	this.clientId_user = {};
+	this.addUser = function(user) {
+		assert.ok(!(user.nick in that.nick_user));
+		assert.ok(!(user.clientId in that.clientId_user));
+		that.nick_user[user.nick] = user;
+		that.clientId_user[user.clientId] = user;
+	};
+	this.removeUser = function(user) {
+		var userByClientId = that.clientId_user[user.clientId];
+		var userByNick = that.nick_user[user.nick];
+		assert.equal(userByClientId, userByNick);
+		assert.equal(userByClientId, user);
+		delete that.nick_user[user.nick];
+		delete that.clientId_user[user.clientId];
+	};
+	this.userRenamed = function(oldNick, user) {
+		assert.ok(user);
+		var oldUser = that.nick_user[oldNick];
+		assert.equal(oldUser, user);
+		delete that.nick_user[oldNick];
+		that.nick_user[user.nick] = user;
+	};
+	this.getUserByClientId = function(clientId) {
+		return that.clientId_user[clientId];
+	};
+	this.getUserByNick = function(nick) {
+		return that.nick_user[nick];
+	};
+	this.getNicks = function() {
+		return Object.keys(that.nick_user);
+	};
+	this.getOldestUser = function() {
+		// TODO - actually choose oldest User!
+		var nicks = that.getNicks();
+		assert.ok(nicks.length > 0);
+		return that.nick_user[nicks[0]];
+	};
+
+	var that = this;
+}
 // TODO - clean up users & channels
-var nick_user = {};
-var clientId_user = {};
+var users = new UserSet();
 function User(nick_, clientId_) {
 	this.nick = nick_;
 	this.clientId = clientId_;
@@ -50,28 +91,30 @@ function User(nick_, clientId_) {
 	function part() {
 		if(that.channel) {
 			that.channel.removeUser(that);
+			that.channel = null;
 		}
 	}
 	this.join = function(channel) {
+		if(channel == that.channel) {
+			return;
+		}
 		part();
 		that.channel = channel;
 		channel.addUser(that);
 	};
 	this.destroy = function() {
 		part();
-		delete nick_user[this.nick];
-		delete clientId_user[this.clientId];
+		users.removeUser(that);
 	};
 	this.setNick = function(newNick) {
-		assert.ok(!(newNick in nick_user));
+		assert.ok(!users.getUserByNick(newNick));
 		var oldNick = that.nick;
 
-		delete nick_user[oldNick];
 		that.nick = newNick;
-		nick_user[that.nick] = that;
+		users.userRenamed(oldNick, that);
 
 		assert.ok(that.channel);
-		that.channel.memberRenamed(oldNick, newNick);
+		that.channel.userRenamed(oldNick, that);
 	};
 
 	this.admin = false;
@@ -85,21 +128,17 @@ function User(nick_, clientId_) {
 var channels = {};
 function Channel(channelName) {
 	this.channelName = channelName;
-	var users = {};
+	var channelUsers = new UserSet();
 	var adminUser = null;
 	this.sendMemberList = function() {
-		that.getGroup().now.handleChannelMembers(users);
+		that.getGroup().now.handleChannelMembers(channelUsers);
 	};
-	this.memberRenamed = function(oldNick, newNick) {
-		var user = users[oldNick];
-		assert.equal(user.nick, newNick);
-		assert.ok(user);
-		delete users[oldNick];
-		users[newNick] = user;
+	this.userRenamed = function(oldNick, user) {
+		channelUsers.userRenamed(oldNick, user);
 		that.sendMemberList();
 	};
 	this.addUser = function(user) {
-		users[user.nick] = user;
+		channelUsers.addUser(user);
 		if(!adminUser) {
 			adminUser = user;
 			user.setAdmin(true);
@@ -110,9 +149,9 @@ function Channel(channelName) {
 		this.sendMemberList();
 	};
 	this.removeUser = function(user) {
-		delete users[user.nick];
+		channelUsers.removeUser(user);
 
-		var userNames = Object.keys(users);
+		var userNames = channelUsers.getNicks();
 		if(user == adminUser) {
 			user.setAdmin(false);
 			adminUser = null;
@@ -125,8 +164,7 @@ function Channel(channelName) {
 			// There are some users remaining. We need to appoint a new
 			// admin if the old one left.
 			if(!adminUser) {
-				// TODO - should choose next oldest User!
-				adminUser = users[userNames[0]];
+				adminUser = channelUsers.getOldestUser();
 				adminUser.setAdmin(true);
 			}
 		}
@@ -152,37 +190,36 @@ function getChannel(channelName) {
 	return channel;
 }
 
+GM = require('./webroot/GMConstants').GM;
+
 everyone.now.joinChannel = function(nick, channelName, callback) {
 	var clientId = this.user.clientId;
-	var user = clientId_user[clientId];
+	var user = users.getUserByClientId(clientId);
+	var nickInUse = users.getUserByNick(nick);
 	if(!user) {
-		// The clientId wants to be named nick
-		if(nick in nick_user) {
-			callback('Nick: ' + nick + " in use by clientId: " + nick_user[nick].clientId);
+		if(nickInUse) {
+			callback(GM.NICK_IN_USE, null, null);
 			return;
 		}
 		user = new User(nick, clientId);
-		nick_user[nick] = user;
-		clientId_user[clientId] = user;
-	} else {
-		if(user.nick != nick) {
-			// The clientId wants to rename himself to nick
-			if(nick in nick_user) {
-				callback('Nick: ' + nick + " in use by clientId: " + nick_user[nick].clientId);
-				return;
-			}
-			// Note: In the event that the client does a rename *and* a join, we'll
-			// send out more messages than are strictly necessary. That's fine, though.
-			user.setNick(nick);
-		}
+		users.addUser(user);
 	}
-	assert.ok(user);
+
+	if(user.nick != nick) {
+		if(nickInUse) {
+			callback(GM.NICK_IN_USE, user.nick, user.channel.channelName);
+			return;
+		}
+		// Note: In the event that the client does a rename *and* a join, we'll
+		// send out more messages than are strictly necessary. That's fine, though.
+		user.setNick(nick);
+	}
 
 	var channel = getChannel(channelName);
 	if(user.channel != channel) {
 		user.join(channel);
 	}
-	callback();
+	callback(null, user.nick, user.channel.channelName);
 };
 
 function authenticate_authorize(func, authorize) {
@@ -193,7 +230,7 @@ function authenticate_authorize(func, authorize) {
 			args[i] = arguments[i];
 		}
 		var callback = args[args.length-1];
-		var user = clientId_user[this.user.clientId];
+		var user = users.getUserByClientId(this.user.clientId);
 		if(!user) {
 			callback("User for clientId " + this.user.clientId + " not found");
 			return;
@@ -213,19 +250,19 @@ function auth_admin(func) {
 	return authenticate_authorize(func, true);
 }
 
-everyone.now.sendGameInfo = auth(function(user, gameInfo, callback) {
+everyone.now.sendGameInfo = auth_admin(function(user, gameInfo, callback) {
 	var channel = user.channel;
 	channel.getGroup().now.handleGameInfo(gameInfo);
 });
 
-everyone.now.sendScramble = auth(function(user, scramble, callback) {
+everyone.now.sendScramble = auth_admin(function(user, scramble, callback) {
 	var channel = user.channel;
 	channel.getGroup().now.handleScramble(scramble);
 });
 
-everyone.now.sendMove = auth_admin(function(user, move, timestamp, startstamp, callback) {
+everyone.now.sendMove = auth(function(user, move, timestamp, startstamp, callback) {
 	var channel = user.channel;
-	channel.getGroup().now.handleMove(user.nick, move, timestamp, startstamp);
+	channel.getGroup().now.handleMove(user, move, timestamp, startstamp);
 });
 
 everyone.now.ping = function(callback) {
@@ -239,8 +276,9 @@ nowjs.on('connect', function() {
 
 nowjs.on('disconnect', function(){
   console.log("Left: " + this.user.clientId);
-  var user = clientId_user[this.user.clientId];
+  var user = users.getUserByClientId(this.user.clientId);
   if(user) {
+	  var channel = user.channel;
 	  user.destroy();
   }
 });

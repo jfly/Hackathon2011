@@ -1,6 +1,8 @@
 var StatusBar = {};
 (function() {
 	// TODO - distinguish between errors, warnings, and benign messages?
+	// TODO - maintain a queue of errors per key, ensure each is shown for at least 1 second?
+	// TODO - add an X to clear the current error
 	var errorMap = {};
 	StatusBar.setError = function(key, error) {
 		if(!error) {
@@ -32,16 +34,9 @@ var StatusBar = {};
 		}
 	};
 	$(document).ready(function() {
-		/*
-		connectionStatus = $("<div />");
-		$(connectionStatus).id = 'connectionStatus';// TODO set id in jquery?
-		console.log(connectionStatus);
-		$(document.body).append(connectionStatus); // TODO - what's the jquery way?
-		*/
-		connectionStatus = document.createElement('div');
-		connectionStatus.id = 'connectionStatus';
-		document.body.appendChild(connectionStatus);
-		connectionStatus = $(connectionStatus);
+		connectionStatus = $(document.createElement('div'));
+		connectionStatus.addClass('statusBar');
+		$('body').append(connectionStatus);
 		StatusBar.refresh();
 	});
 })();

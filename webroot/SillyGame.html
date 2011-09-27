@@ -8,6 +8,7 @@
 		<script type='text/javascript' src='/nowjs/now.js'></script>
 		<script type='text/javascript' src='jquery-1.6.4.js'></script>
 
+		<script type='text/javascript' src='GMConstants.js'></script>
 		<script type='text/javascript' src='StatusBar.js'></script>
 		<script type='text/javascript' src='GameMaster.js'></script>
 		<script type='text/javascript' src='GameMasterGui.js'></script>
@@ -15,6 +16,7 @@
 
 		<script type='text/javascript'>
 			(function() {
+
 			StatusBar.setError('init', 'Connecting...');
 			var gm, gmGui;
 			now.ready(function() {
@@ -27,28 +29,15 @@
 					gmGui = new GameMasterGui.GameMasterGui(gm);
 				}
 
-				gm.joinChannel();
+				function reconnect() {
+					var channelName = window.location.hash.substring(1);
+					gm.joinChannel(null, channelName);
+				}
+				$(window).bind('hashchange', function() {
+					reconnect();
+				});
+				reconnect();
 			});
-
-			/* TODO - merge w/ gm.errors somehow
-			var disconnected = true;
-			var interestingEvents = { 'disconnect': "Disconnected",
-				'reconnect': null,
-				'reconnect_failed': null,
-				'connect_failed': null,
-				'error': null,
-				'retry': null };
-			for(var i = 0; i < interestingEvents.length; i++) {
-				var interestingEvent = interestingEvents[i];
-				now.core.on(interestingEvent, function(interestingEvent) {
-					if(interestingEvent == 'disconnect') {
-						disconnected = true;
-					}
-					connectionStatus.show();
-					connectionStatus.text(interestingEvent);
-				}.bind(null, interestingEvent));
-			}
-			*/
 
 			var pingerPollerRunning = false;
 			now.ready(function() {
@@ -87,7 +76,7 @@
 			})();
 		</script>
 
-		<link rel="stylesheet" href="GameMaster.css" type="text/css" />
+		<link rel="stylesheet" href="GameMasterGui.css" type="text/css" />
 		<link rel="stylesheet" href="StatusBar.css" type="text/css" />
 		</style>
 	</head>

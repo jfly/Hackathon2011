@@ -17,14 +17,18 @@ GameMaster.GameMaster = function() {
 		gui = gui_;
 	};
 
-	var gameInfo = {};
+	var gameInfo = null;
 	this.getGameInfo = function() {
 		return gameInfo;
 	};
 	this.getGame = function() {
+		if(!games || !gameInfo) {
+			return null;
+		}
 		return games[gameInfo.gameName];
 	};
 	now.handleGameInfo = function(gameInfo_) {
+		StatusBar.setError('handleGameInfo', null);
 		// gameInfo should have a gameName attribute and an inspectionSeconds attribute
 		gameInfo = gameInfo_;
 		assert(gameInfo.gameName in games, gameInfo.gameName + " not found in " + Object.keys(games));
@@ -40,21 +44,41 @@ GameMaster.GameMaster = function() {
 		gui.handleScramble();
 	};
 
-	var members;
+	var members = null;
 	this.getChannelMembers = function() {
 		return members;
 	};
-	var myself;
+	var myself = null;
 	this.getMyself = function() {
 		return myself;
 	};
+	this.getMyNick = function() {
+		if(!myself) {
+			return null;
+		}
+		return myself.nick;
+	};
+	this.getChannelName = function() {
+		if(!myself) {
+			return null;
+		}
+		return myself.channel.channelName;
+	};
+	this.isConnected = function() {
+		return myself && that.getGame();
+	};
 	now.handleChannelMembers = function(members_) {
 		members = members_;
-		if(username in members) {
-			myself = members[username];
+		var clientId = now.core.clientId;
+		if(clientId in members.clientId_user) {
+			StatusBar.setError('handleChannelMembers', null);
+			myself = members.clientId_user[clientId];
+			gui.connectionChanged();
 		} else {
+			StatusBar.setError('handleChannelMembers', "Couldn't find " + clientId + " in " + Object.keys(members_.clientId_user));
 			myself = null;
-			assert(false, username + " not found in channel members: " + Object.keys(members));
+			members = null;
+			gui.connectionChanged();
 			return;
 		}
 
@@ -98,21 +122,41 @@ GameMaster.GameMaster = function() {
 		now.sendMove(move, timestamp, startstamp, errorHandler('sendMove'));
 	};
 
-	var username, channel;
-	this.joinChannel = function(username_, channel_) {
-		username = username_ || 'Pimp' + now.core.clientId;
-		channel = channel_ || "PimpsAtSea"; // TODO - configurable later on
-		myself = null;
-		now.joinChannel(username, channel, errorHandler('joinChannel'));
+	this.joinChannel = function(nick_, channelName_) {
+		var desiredNick = nick_ || that.getMyNick() || "Pimp";
+		var desiredChannelName = channelName_ || that.getChannelName() || "PimpsAtSea";
+		if(desiredNick == that.getMyNick() && desiredChannelName == that.getChannelName()) {
+			StatusBar.setError('joinChannel', null)
+			StatusBar.setError('handleGameInfo', null)
+			StatusBar.setError('handleChannelMembers', null);
+			return;
+		}
+
+		StatusBar.setError('joinChannel', 'Joining channel #' + desiredChannelName + ' as ' + desiredNick);
+		StatusBar.setError('handleGameInfo', 'Waiting...');
+		StatusBar.setError('handleChannelMembers', 'Waiting...');
+		now.joinChannel(desiredNick, desiredChannelName, function(error, nick_, channelName_) {
+			gui.connectionChanged();
+			if(!error) {
+				StatusBar.setError('joinChannel', null);
+			} else if(error == GM.NICK_IN_USE) {
+				var newDesiredNick = desiredNick + "1"; // TODO - actually increment the number!
+				StatusBar.setError('joinChannel', desiredNick + ' in use, attempting ' + newDesiredNick);
+				that.joinChannel(newDesiredNick, desiredChannelName);
+			} else {
+				assert(false, "Unrecognized error " + error);
+			}
+		});
 	};
 
 	function errorHandler(errorType) {
 		return function(error) {
-			// TODO - retrieve username from server & update gui?
+			// TODO - retrieve nick from server & update gui?
+			// TODO - disable gui?
 			if(error) {
-				StatusBar.setError('joinChannel', error);
+				StatusBar.setError(errorType, error);
 			} else {
-				StatusBar.setError('joinChannel', null);
+				StatusBar.setError(errorType, null);
 			}
 		};
 	};

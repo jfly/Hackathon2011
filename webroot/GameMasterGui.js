@@ -15,19 +15,19 @@ DEFAULT_INSPECTION = 15;
 		inspectionCountdownDiv.id = 'inspection';
 		infoDiv = document.createElement('div');
 
-		var usernameField = $('<input />');
-		usernameField.appendTo(infoDiv);
+		var nickField = $('<input />');
+		nickField.appendTo(infoDiv);
 		infoDiv.appendChild(document.createTextNode('#'));
 		var channelField = $('<input />');
 		channelField.appendTo(infoDiv);
 		$('<br />').appendTo(infoDiv);
 
 		function joinChannel() {
-			var username = usernameField.val();
+			var nick = nickField.val();
 			var channel = channelField.val();
-			gameMaster.joinChannel(username, channel);
+			gameMaster.joinChannel(nick, channel);
 		}
-		usernameField.change(joinChannel);
+		nickField.change(joinChannel);
 		channelField.change(joinChannel);
 
 		gameDropdown = document.createElement('select');
@@ -64,14 +64,27 @@ DEFAULT_INSPECTION = 15;
 		});
 		infoDiv.appendChild(scrambleButton);
 
+		var disabledDiv = $(document.createElement('div'));
+		disabledDiv.addClass("grayOut");
+		disabledDiv.hide();
+
 		document.body.appendChild(infoDiv);
 		document.body.appendChild(gamesDiv);
 		document.body.appendChild(inspectionCountdownDiv);
+		$('body').append(disabledDiv);
 
-		function refreshInfo() {
+		var gameBoards = {};
+		function refresh() {
 			var myself = gameMaster.getMyself();
-			usernameField.val(myself.nick);
+			if(!gameMaster.isConnected()) {
+				disabledDiv.show();
+				return;
+			}
+			disabledDiv.hide();
+
+			nickField.val(myself.nick);
 			channelField.val(myself.channel.channelName);
+			document.location.hash = myself.channel.channelName;
 			if(myself.admin) {
 				gameDropdown.disabled = false;	
 				inspectionSecondsField.disabled = false;	
@@ -84,39 +97,38 @@ DEFAULT_INSPECTION = 15;
 			var gameInfo = gameMaster.getGameInfo();
 			gameDropdown.value = gameInfo.gameName;
 			inspectionSecondsField.value = gameInfo.inspectionSeconds;
-		}
-		var gameBoards = {};
-		function refreshBoards() {
+
 			// cleaning up old games
 			var gameInfo = gameMaster.getGameInfo();
 			var game = gameMaster.getGame();
 			var members = gameMaster.getChannelMembers();
-			for(var memberName in gameBoards) {
-				var gameBoard = gameBoards[memberName]
-				if(!(memberName in members) || gameBoard.gameInstance.getName() != gameInfo.gameName) {
+			for(var clientId in gameBoards) {
+				var gameBoard = gameBoards[clientId];
+				if(!(clientId in members.clientId_user) || gameBoard.gameInstance.getName() != gameInfo.gameName) {
 					// This game instance is either the wrong type of game, or is for a member
 					// who has left, so we can delete it.
 					gamesDiv.removeChild(gameBoard.div);
-					delete gameBoards[memberName];
+					delete gameBoards[clientId];
 				}
 			}
 			// creating new games
-			for(var memberName in members) {
-				if(memberName in gameBoards) {
-					assert(gameBoards[memberName].gameInstance.getName() == gameInfo.gameName);
+			for(var clientId in members.clientId_user) {
+				var user = members.clientId_user[clientId];
+				if(clientId in gameBoards) {
+					assert(gameBoards[clientId].gameInstance.getName() == gameInfo.gameName);
 				} else {
 					var gameInstance = new game(moveApplied);
 					var babbyDiv = gameInstance.getDiv();
 					var containerDiv = document.createElement('div');
 					containerDiv.appendChild(babbyDiv);
 					var nameDiv = document.createElement('div');
-					nameDiv.appendChild(document.createTextNode(memberName));
 					containerDiv.appendChild(nameDiv);
-					gameBoards[memberName] = { gameInstance: gameInstance, div: containerDiv, nameDiv: nameDiv };
+					gameBoards[clientId] = { gameInstance: gameInstance, div: containerDiv, nameDiv: nameDiv };
 					gamesDiv.appendChild(containerDiv);
 				}
-				var nameDiv = $(gameBoards[memberName].nameDiv);
-				if(members[memberName].admin) {
+				var nameDiv = $(gameBoards[clientId].nameDiv);
+				nameDiv.text(user.nick);
+				if(members.clientId_user[clientId].admin) {
 					nameDiv.removeClass('nonAdminname');
 					nameDiv.addClass('adminName');
 				} else {
@@ -149,14 +161,16 @@ DEFAULT_INSPECTION = 15;
 			} else {
 				startstamp = new Date().getTime();
 				$(inspectionCountdownDiv).hide();
-				var myGameInstance = gameBoards[gameMaster.getMyself().nick].gameInstance;
+				var myGameInstance = gameBoards[gameMaster.getMyself().clientId].gameInstance;
 				myGameInstance.endInspection();
 			}
 		}
 
 		this.handleGameInfo = function() {
-			refreshInfo();
-			refreshBoards();
+			refresh();
+		};
+		this.connectionChanged = function() {
+			refresh();
 		};
 		this.getGameInfo = function() {
 			var gameName = gameDropdown.value;
@@ -165,29 +179,29 @@ DEFAULT_INSPECTION = 15;
 		};
 
 		this.handleChannelMembers = function() {
-			refreshBoards();
+			refresh();
 		};
 
 		this.handleScramble = function() {
 			var scramble = gameMaster.getScramble();
-			for(var memberName in gameBoards) {
-				gameBoards[memberName].gameInstance.setScramble(scramble);
+			for(var clientId in gameBoards) {
+				gameBoards[clientId].gameInstance.setScramble(scramble);
 			}
 			startInspection();
 		};
 
-		this.handleMove = function(nick, move, timestamp, startstamp) {
+		this.handleMove = function(user, move, timestamp, startstamp) {
 			// TODO - this doesn't handle the case where someone appears in a channel midway through a solve
-			var gameBoard = gameBoards[nick];
-			assert(gameBoard, nick + " doesn't appear in " + Object.keys(gameBoards));
+			var gameBoard = gameBoards[user.clientId];
+			assert(gameBoard, user.clientId + " doesn't appear in " + Object.keys(gameBoards));
 			var gameInstance = gameBoard.gameInstance;
 			assert(gameInstance);
-			if(nick != gameMaster.getMyself().nick) {
+			if(user.clientId != gameMaster.getMyself().clientId) {
 				gameInstance.applyMove(move);
 			}
 			if(gameInstance.isFinished()) {
 				var totalTime = (timestamp - startstamp)/1000;
-				$(gameBoard.nameDiv).text(nick + " " + totalTime.toFixed(2) + " seconds");
+				$(gameBoard.nameDiv).text(user.nick + " " + totalTime.toFixed(2) + " seconds");
 			}
 		};
 
