@@ -4,8 +4,6 @@
 		-use age to assign admin status
 -add a ready, set, go?
 	-show timer
--test out what happens when grayout permanently appears
-	-statusbar should be on top of grayout
 -add chat support
 	+gray out our messages until we know they hit the server
 	+reorder messages on client side if necessary
