@@ -14,6 +14,7 @@ var StatusBar = {};
 	};
 
 	var connectionStatus = null;
+	var pendingShow = null;
 	StatusBar.refresh = function() {
 		if(!connectionStatus) {
 			// We can't show any status until the page has loaded.
@@ -28,9 +29,23 @@ var StatusBar = {};
 			for(var i = 0; i < errors.length; i++) {
 				connectionStatus.append($('<div />').text(errors[i]));
 			}
-			connectionStatus.show();
+
+			// We wait a moment before showing the status bar to prevent flickering
+			// (when an error gets added and the almost immediately removed)
+			if(!pendingShow) {
+				pendingShow = setTimeout(function() {
+					pendingShow = null;
+					assert(errors.length > 0);
+					connectionStatus.show();
+				}, 100);
+			}
 		} else {
-			connectionStatus.hide();
+			if(pendingShow) {
+				clearTimeout(pendingShow);
+				pendingShow = null;
+			} else {
+				connectionStatus.hide();
+			}
 		}
 	};
 	$(document).ready(function() {
