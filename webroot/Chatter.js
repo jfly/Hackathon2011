@@ -49,6 +49,13 @@ Chatter.Chatter = function(gameMaster) {
 		addMessageUnconditional(nick, message);
 	};
 
+	$('body').keypress(function(e) {
+		if(e.which == 96) { // twiddle (~) key
+			chatBox.focus();
+			e.preventDefault();
+		}
+	});
+
 	var that = this;
 };
 
