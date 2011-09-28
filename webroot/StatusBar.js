@@ -1,16 +1,22 @@
 var StatusBar = {};
 (function() {
-	// TODO - distinguish between errors, warnings, and benign messages?
-	// TODO - maintain a queue of errors per key, ensure each is shown for at least 1 second?
-	// TODO - add an X to clear the current error
 	var errorMap = {};
 	StatusBar.setError = function(key, error) {
+		var hasChanged = false;
 		if(!error) {
+			if(key in errorMap) {
+				hasChanged = true;
+			}
 			delete errorMap[key];
 		} else {
+			if(errorMap[key] != error) {
+				hasChanged = true;
+			}
 			errorMap[key] = error;
 		}
-		StatusBar.refresh();
+		if(hasChanged) {
+			StatusBar.refresh();
+		}
 	};
 
 	var connectionStatus = null;

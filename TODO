@@ -4,7 +4,6 @@
 		-use age to assign admin status
 -add a ready, set, go?
 	-show timer
--improve behavior of Status bar (see comments in StatusBar.js)
 -test out what happens when grayout permanently appears
 	-statusbar should be on top of grayout
 -add chat support
