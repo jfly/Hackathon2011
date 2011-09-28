@@ -28,6 +28,8 @@ Chatter.Chatter = function(gameMaster) {
 	});
 
 	function addMessageUnconditional(nick, message) {
+		var isFullyScrolled = ( 2 + messageArea.scrollTop() + messageArea.outerHeight() >= messageArea[0].scrollHeight );
+
 		var messageDiv = $('<div/>');
 		messageDiv.addClass('message');
 		var nickSpan = $('<span/>').text(nick + ": ");
@@ -39,6 +41,10 @@ Chatter.Chatter = function(gameMaster) {
 			messageDiv.append($('<br>'));
 		}
 		messageArea.append(messageDiv);
+
+		if(isFullyScrolled) {
+			messageArea.scrollTop(messageArea[0].scrollHeight);
+		}
 	}
 
 	this.addMessage = function(nick, message) {
