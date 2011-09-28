@@ -5,7 +5,7 @@
 		var ButtonGame = function(moveCallback) {
 			var lastButtonValue = -1;
 			var buttons = null;
-			this.setScramble = function(scramble) {
+			this.setState = function(scramble) {
 				solving = false;
 				assert(scramble == null || scramble.length == WIDTH*HEIGHT);
 
@@ -14,6 +14,7 @@
 				$(gameDiv).empty()
 				gameDiv.appendChild(gameTable);
 				buttons = [];
+				lastButtonValue = WIDTH*HEIGHT;
 				for(var i = 0; i < HEIGHT; i++) {
 					var row = gameTable.insertRow(-1);
 					var buttonRow = [];
@@ -26,10 +27,13 @@
 						var button = document.createElement('input');
 						buttonRow.push(button);
 						var index = WIDTH*i+j;
-						if(scramble === null) {
+						if(scramble === null || scramble[index] === null) {
 							$(button).hide();
 						} else {
-							var buttonValue = (scramble == null ? index : scramble[index]);
+							var buttonValue = scramble[index];
+							if(buttonValue < lastButtonValue) {
+								lastButtonValue = buttonValue;
+							}
 							button.buttonValue = buttonValue;
 							button.value = buttonValue;
 						}
@@ -44,20 +48,33 @@
 						cell.appendChild(button);
 					}
 				}
+				lastButtonValue--;
+			};
+			this.getState = function() {
+				var state = [];
+				for(var i = 0; i < buttons.length; i++) {
+					for(var j = 0; j < buttons[i].length; j++) {
+						var button = buttons[i][j];
+						var value = button.buttonValue;
+						state.push(button.buttonValue);
+					}
+				}
+				return state;
 			};
 			this.applyMove = function(move) {
-				if(!isLegalMove(move)) {
+				if(!that.isLegalMove(move)) {
 					assert(false);
 					return;
 				}
 				var button = buttons[move[0]][move[1]];
-				button.style.display = 'none';
 				lastButtonValue = button.buttonValue;
+				button.buttonValue = null;
+				$(button).hide();
 			};
 			this.isFinished = function() {
 				return lastButtonValue == WIDTH*HEIGHT-1;
 			};
-			function isLegalMove(move) {
+			this.isLegalMove = function(move) {
 				var button = buttons[move[0]][move[1]];
 				return (button.buttonValue == lastButtonValue + 1);
 			};
@@ -79,19 +96,20 @@
 					return;
 				}
 				var move = [ button.iIndex, button.jIndex ];
-				if(isLegalMove(move)) {
+				var moveState = { move: move, oldState: that.getState() };
+				if(that.isLegalMove(move)) {
 					that.applyMove(move);
 					if(moveCallback) {
-						moveCallback(move);
+						moveCallback(moveState);
 					}
 				}
 
 			}
 
-			this.setScramble(null);
+			this.setState(null);
 		};
 
-		ButtonGame.generateScramble = function() {
+		ButtonGame.generateRandomState = function() {
 			var cellCount = WIDTH*HEIGHT;
 			var scramble = [];
 			for(var i = 0; i < cellCount; i++) {

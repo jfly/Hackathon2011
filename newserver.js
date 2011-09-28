@@ -255,14 +255,14 @@ everyone.now.sendGameInfo = auth_admin(function(user, gameInfo, callback) {
 	channel.getGroup().now.handleGameInfo(gameInfo);
 });
 
-everyone.now.sendScramble = auth_admin(function(user, scramble, callback) {
+everyone.now.sendRandomState = auth_admin(function(user, randomState, callback) {
 	var channel = user.channel;
-	channel.getGroup().now.handleScramble(scramble);
+	channel.getGroup().now.handleRandomState(randomState);
 });
 
-everyone.now.sendMove = auth(function(user, move, timestamp, startstamp, callback) {
+everyone.now.sendMoveState = auth(function(user, moveState, timestamp, startstamp, callback) {
 	var channel = user.channel;
-	channel.getGroup().now.handleMove(user, move, timestamp, startstamp);
+	channel.getGroup().now.handleMoveState(user, moveState, timestamp, startstamp);
 });
 
 everyone.now.ping = function(callback) {

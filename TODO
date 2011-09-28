@@ -1,12 +1,9 @@
 **** Client side ****
--gracefully handle node restarting/losing connection
-	-now.js's client side library seems to handle this by eventually recalling now.ready()
 -deterministic ordering of channel members? age or nick?
 	-need to add age attribute to members
 		-use age to assign admin status
 -add a ready, set, go?
 	-show timer
--deal with people joining in the middle of a solve
 -improve behavior of Status bar (see comments in StatusBar.js)
 -add chat support
 

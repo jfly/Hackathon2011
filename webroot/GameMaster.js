@@ -35,13 +35,13 @@ GameMaster.GameMaster = function() {
 		gui.handleGameInfo();
 	};
 
-	var scramble = null;
-	this.getScramble = function() {
-		return scramble;
+	var randomState = null;
+	this.getRandomState = function() {
+		return randomState;
 	};
-	now.handleScramble = function(scramble_) {
-		scramble = scramble_;
-		gui.handleScramble();
+	now.handleRandomState = function(randomState_) {
+		randomState = randomState_;
+		gui.handleRandomState();
 	};
 
 	var members = null;
@@ -96,8 +96,8 @@ GameMaster.GameMaster = function() {
 		gui.handleChannelMembers();
 	};
 
-	now.handleMove = function(nick, move, timestamp, startstamp) {
-		gui.handleMove(nick, move, timestamp, startstamp);
+	now.handleMoveState = function(nick, moveState, timestamp, startstamp) {
+		gui.handleMoveState(nick, moveState, timestamp, startstamp);
 	};
 
 	now.handleChat = function(nick, msg) {
@@ -111,15 +111,15 @@ GameMaster.GameMaster = function() {
 		now.sendGameInfo(gameInfo, errorHandler('sendGameInfo'));
 	};
 
-	this.sendScramble = function(scramble) {
+	this.sendRandomState = function(scramble) {
 		assert(myself);
 		assert(myself.admin);
-		now.sendScramble(scramble, errorHandler('sendScramble'));
+		now.sendRandomState(scramble, errorHandler('sendRandomState'));
 	};
 
-	this.sendMove = function(move, startstamp) {
+	this.sendMoveState = function(moveState, startstamp) {
 		var timestamp = new Date().getTime();
-		now.sendMove(move, timestamp, startstamp, errorHandler('sendMove'));
+		now.sendMoveState(moveState, timestamp, startstamp, errorHandler('sendMoveState'));
 	};
 
 	this.joinChannel = function(nick_, channelName_) {

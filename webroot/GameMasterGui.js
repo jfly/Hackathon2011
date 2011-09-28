@@ -59,8 +59,8 @@ DEFAULT_INSPECTION = 15;
 		scrambleButton.type = 'button';
 		scrambleButton.addEventListener('click', function(e) {
 			// TODO - what if they click scramble before we've generated boards?
-			var scramble = gameMaster.getGame().generateScramble();
-			gameMaster.sendScramble(scramble);
+			var scramble = gameMaster.getGame().generateRandomState();
+			gameMaster.sendRandomState(scramble);
 		});
 		infoDiv.appendChild(scrambleButton);
 
@@ -137,14 +137,17 @@ DEFAULT_INSPECTION = 15;
 				}
 			}
 		}
-		function moveApplied(move) {
-			gameMaster.sendMove(move, startstamp);
+		function moveApplied(moveState) {
+			gameMaster.sendMoveState(moveState, startstamp);
 		}
 
 		var inspectionStart;
 		function startInspection() {
 			inspectionStart = new Date().getTime();
 			refreshInspection();
+		}
+		function getMyBoard() {
+			return gameBoards[gameMaster.getMyself().clientId].gameInstance;
 		}
 		var startstamp = 0;
 		function refreshInspection() {
@@ -161,8 +164,7 @@ DEFAULT_INSPECTION = 15;
 			} else {
 				startstamp = new Date().getTime();
 				$(inspectionCountdownDiv).hide();
-				var myGameInstance = gameBoards[gameMaster.getMyself().clientId].gameInstance;
-				myGameInstance.endInspection();
+				getMyBoard().endInspection();
 			}
 		}
 
@@ -182,22 +184,29 @@ DEFAULT_INSPECTION = 15;
 			refresh();
 		};
 
-		this.handleScramble = function() {
-			var scramble = gameMaster.getScramble();
+		this.handleRandomState = function() {
+			var randomState = gameMaster.getRandomState();
 			for(var clientId in gameBoards) {
-				gameBoards[clientId].gameInstance.setScramble(scramble);
+				gameBoards[clientId].gameInstance.setState(randomState);
 			}
 			startInspection();
 		};
 
-		this.handleMove = function(user, move, timestamp, startstamp) {
-			// TODO - this doesn't handle the case where someone appears in a channel midway through a solve
+		this.handleMoveState = function(user, moveState, timestamp, startstamp) {
 			var gameBoard = gameBoards[user.clientId];
 			assert(gameBoard, user.clientId + " doesn't appear in " + Object.keys(gameBoards));
 			var gameInstance = gameBoard.gameInstance;
 			assert(gameInstance);
 			if(user.clientId != gameMaster.getMyself().clientId) {
-				gameInstance.applyMove(move);
+				if(gameInstance.getState() != moveState.oldState) {
+					gameInstance.setState(moveState.oldState);
+				}
+				//TODO
+				if(!gameInstance.isLegalMove(moveState.move)) {
+					gameInstance.setState(moveState.state);
+				} else {
+					gameInstance.applyMove(moveState.move);
+				}
 			}
 			if(gameInstance.isFinished()) {
 				var totalTime = (timestamp - startstamp)/1000;
