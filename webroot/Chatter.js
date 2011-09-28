@@ -14,45 +14,81 @@ Chatter.Chatter = function(gameMaster) {
 	totalChatArea.append(chatBox);
 	$('body').append(totalChatArea);
 	chatBox.focus();
+	var messageId = 0;
 	chatBox.keypress(function(e) {
 		if(e.which == 13 && !e.shiftKey) {
 			e.preventDefault();
-			var message = chatBox.val();
-			if(message.match(/^\s*$/)) {
+			var text = chatBox.val();
+			if(text.match(/^\s*$/)) {
 				return;
 			}
-			gameMaster.sendChat(message);
-			addMessageUnconditional(gameMaster.getMyNick(), message);
+			var message = {
+				text: text,
+				timestamp: new Date().getTime(),
+				id: messageId++,
+				nick: gameMaster.getMyNick()
+			};
+			gameMaster.sendMessage(message);
+			addUnconfirmedMessage(message);
 			chatBox.val("");
 		}
 	});
 
-	function addMessageUnconditional(nick, message) {
+	var unconfirmedMessages = {};
+	function addUnconfirmedMessage(message) {
+		var key = [ message.nick, message.id ];
+		message.div = createMessageDiv(message);
+		message.div.addClass('unconfirmedMessage');
+		appendMessageDiv(message.div);
+		unconfirmedMessages[key] = message;
+	}
+	function appendMessageDiv(messageDiv) {
 		var isFullyScrolled = ( 2 + messageArea.scrollTop() + messageArea.outerHeight() >= messageArea[0].scrollHeight );
-
-		var messageDiv = $('<div/>');
-		messageDiv.addClass('message');
-		var nickSpan = $('<span/>').text(nick + ": ");
-		nickSpan.addClass('nick');
-		messageDiv.append(nickSpan);
-		var messageByLine = message.split('\n');
-		for(var i = 0; i < messageByLine.length; i++) {
-			messageDiv.append(messageByLine[i]);
-			messageDiv.append($('<br>'));
-		}
 		messageArea.append(messageDiv);
-
 		if(isFullyScrolled) {
 			messageArea.scrollTop(messageArea[0].scrollHeight);
 		}
 	}
-
-	this.addMessage = function(nick, message) {
-		if(nick == gameMaster.getMyNick()) {
-			// TODO - gray out messages until we know they hit the server?
-			return;
+	function confirmMessage(message) {
+		var key = [ message.nick, message.id ];
+		var messageDiv = null;
+		if(key in unconfirmedMessages) {
+			var message = unconfirmedMessages[key];
+			messageDiv = message.div;
+			// To keep the ordering of the messages correct, we must remove and then re-add this messageDiv;
+			// We could also move all other unconfirmedMessages to the bottom, I'm not sure what makes
+			// the most sense.
+			messageDiv.remove();
+			messageDiv.removeClass('unconfirmedMessage');
+		} else {
+			message.div = createMessageDiv(message);
+			messageDiv = message.div;
 		}
-		addMessageUnconditional(nick, message);
+
+		appendMessageDiv(messageDiv);
+	}
+	function createMessageDiv(message) {
+		var messageDiv = $('<div/>');
+		messageDiv.addClass('message');
+		var nickSpan = $('<span/>').text(message.nick + ": ");
+		nickSpan.addClass('nick');
+		messageDiv.append(nickSpan);
+		var messageByLine = message.text.split('\n');
+		for(var i = 0; i < messageByLine.length; i++) {
+			messageDiv.append(messageByLine[i]);
+			messageDiv.append($('<br>'));
+		}
+
+		return messageDiv;
+	}
+
+	this.addMessage = function(message) {
+		confirmMessage(message);
+	};
+
+	this.clear = function() {
+		messageArea.empty();
+		unconfirmedMessages = {};
 	};
 
 	$('body').keypress(function(e) {

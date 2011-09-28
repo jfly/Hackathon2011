@@ -11,11 +11,8 @@ GameMaster.addGame = function(game) {
 	games[game.gameName] = game;
 };
 GameMaster.GameMaster = function() {
-
-	var gui = null;
-	this.setGui = function(gui_) {
-		gui = gui_;
-	};
+	var chatter = new Chatter.Chatter(this);
+	var gui = new GameMasterGui.GameMasterGui(this);
 
 	var gameInfo = null;
 	this.getGameInfo = function() {
@@ -100,12 +97,17 @@ GameMaster.GameMaster = function() {
 		gui.handleMoveState(nick, moveState, timestamp, startstamp);
 	};
 
-	now.handleChat = function(user, msg) {
-		gui.handleChat(user, msg);
+	now.handleMessages = function(messages, initialConnect) {
+		if(initialConnect) {
+			chatter.clear();
+		}
+		for(var i = 0; i < messages.length; i++) {
+			chatter.addMessage(messages[i]);
+		}
 	};
 
-	this.sendChat = function(msg) {
-		now.sendChat(msg);
+	this.sendMessage = function(msg) {
+		now.sendMessage(msg);
 	};
 
 	this.sendGameInfo = function() {

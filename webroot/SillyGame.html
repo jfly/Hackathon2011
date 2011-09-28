@@ -19,7 +19,7 @@
 			(function() {
 
 			StatusBar.setError('init', 'Connecting...');
-			var gm, gmGui;
+			var gm;
 			now.ready(function() {
 				StatusBar.setError('init', null);
 				// This function can get called multiple times. 
@@ -27,7 +27,6 @@
 				// reestablishes a connection with the server.
 				if(!gm) {
 					gm = new GameMaster.GameMaster();
-					gmGui = new GameMasterGui.GameMasterGui(gm);
 				}
 
 				function reconnect() {
@@ -77,6 +76,7 @@
 			})();
 		</script>
 
+		<link rel="stylesheet" href="SillyGame.css" type="text/css" />
 		<link rel="stylesheet" href="GameMasterGui.css" type="text/css" />
 		<link rel="stylesheet" href="StatusBar.css" type="text/css" />
 		<link rel="stylesheet" href="Chatter.css" type="text/css" />

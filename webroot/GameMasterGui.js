@@ -10,11 +10,12 @@ DEFAULT_INSPECTION = 15;
 		var gameDropdown;
 		var scrambleButton;
 		var inspectionSecondsField;
-		var chatter = new Chatter.Chatter(gameMaster);
 		gamesDiv = document.createElement('div');
+		$(gamesDiv).addClass('gameArea');
 		inspectionCountdownDiv = document.createElement('div');
 		inspectionCountdownDiv.id = 'inspection';
 		infoDiv = document.createElement('div');
+		$(infoDiv).addClass('info');
 
 		var nickField = $('<input />');
 		nickField.appendTo(infoDiv);
@@ -215,12 +216,6 @@ DEFAULT_INSPECTION = 15;
 			}
 		};
 
-		this.handleChat = function(user, msg) {
-			chatter.addMessage(user.nick, msg);
-		};
-
-
-		gameMaster.setGui(this);
 		var that = this;
 	};
 

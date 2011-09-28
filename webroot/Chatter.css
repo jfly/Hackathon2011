@@ -16,6 +16,10 @@ span.nick {
 	margin-left: 7px;
 }
 
+.unconfirmedMessage {
+	color: gray;
+}
+
 .chatBox {
 	outline-width: 0;
 	padding: 5px;

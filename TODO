@@ -5,8 +5,13 @@
 -add a ready, set, go?
 	-show timer
 -improve behavior of Status bar (see comments in StatusBar.js)
+-test out what happens when grayout permanently appears
+	-statusbar should be on top of grayout
 -add chat support
-	-gray out our messages until we know they hit the server
-	-store last 100 messages on the server and feed them to the client upon connect
+	+gray out our messages until we know they hit the server
+	+reorder messages on client side if necessary
+	+store last 100 messages on the server and feed them to the client upon connect
+	-add timestamps, maybe gchat style
+	-should the chat bar be resizeable? how about pop out-able?
 
 **** Server side ****

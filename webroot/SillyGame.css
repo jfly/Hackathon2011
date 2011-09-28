@@ -1,0 +1,14 @@
+body {
+	margin: 0px;
+}
+
+.info {
+	border-bottom: 1px solid black;
+	width: 73%;
+	padding: 1%;
+}
+
+.gameArea {
+	width: 73%;
+	padding: 1%;
+}

@@ -5,6 +5,7 @@ var sys = require('sys');
 var assert = require('assert');
 
 WEBROOT = 'webroot'
+MESSAGE_RING_SIZE = 100;
 
 var httpServer = require('http').createServer(function(req, res) {
   var ip = req.connection.remoteAddress;
@@ -147,6 +148,10 @@ function Channel(channelName) {
 		that.getGroup().addUser(user.clientId);
 		// and notify everyone in the channel of the new members list
 		this.sendMemberList();
+		// Welcome the new member with the last few messages
+		nowjs.getClient(user.clientId, function() {
+			this.now.handleMessages(messages, true);
+		})
 	};
 	this.removeUser = function(user) {
 		channelUsers.removeUser(user);
@@ -173,6 +178,19 @@ function Channel(channelName) {
 		that.getGroup().removeUser(user.clientId);
 		// and notify everyone in the channel of the new members list
 		this.sendMemberList();
+	};
+
+	var messages = [];
+	this.addMessage = function(user, msg) {
+		msg.serverTimestamp = new Date().getTime();
+		// Nicks can change, so we copy the nick and clientId into the msg
+		msg.nick = user.nick;
+		msg.clientId = user.clientId;
+		messages.push(msg);
+		if(messages.length > MESSAGE_RING_SIZE) {
+			messages.shift();
+		}
+		that.getGroup().now.handleMessages([msg]);
 	};
 
 	this.getGroup = function() {
@@ -219,6 +237,7 @@ everyone.now.joinChannel = function(nick, channelName, callback) {
 	if(user.channel != channel) {
 		user.join(channel);
 	}
+
 	callback(null, user.nick, user.channel.channelName);
 };
 
@@ -265,9 +284,9 @@ everyone.now.sendMoveState = auth(function(user, moveState, timestamp, startstam
 	channel.getGroup().now.handleMoveState(user, moveState, timestamp, startstamp);
 });
 
-everyone.now.sendChat = auth(function(user, msg) {
+everyone.now.sendMessage = auth(function(user, msg) {
 	var channel = user.channel;
-	channel.getGroup().now.handleChat(user, msg);
+	channel.addMessage(user, msg);
 });
 
 everyone.now.ping = function(callback) {
