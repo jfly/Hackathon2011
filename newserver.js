@@ -265,6 +265,11 @@ everyone.now.sendMoveState = auth(function(user, moveState, timestamp, startstam
 	channel.getGroup().now.handleMoveState(user, moveState, timestamp, startstamp);
 });
 
+everyone.now.sendChat = auth(function(user, msg) {
+	var channel = user.channel;
+	channel.getGroup().now.handleChat(user, msg);
+});
+
 everyone.now.ping = function(callback) {
 	callback();
 }

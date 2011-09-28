@@ -10,6 +10,7 @@
 
 		<script type='text/javascript' src='GMConstants.js'></script>
 		<script type='text/javascript' src='StatusBar.js'></script>
+		<script type='text/javascript' src='Chatter.js'></script>
 		<script type='text/javascript' src='GameMaster.js'></script>
 		<script type='text/javascript' src='GameMasterGui.js'></script>
 		<script type='text/javascript' src='ButtonGame.js'></script>
@@ -21,8 +22,8 @@
 			var gm, gmGui;
 			now.ready(function() {
 				StatusBar.setError('init', null);
-				// This function appears to get called multiple times. 
-				// One situation in which this happens is when nowjs
+				// This function can get called multiple times. 
+				// This happens is when nowjs
 				// reestablishes a connection with the server.
 				if(!gm) {
 					gm = new GameMaster.GameMaster();
@@ -78,6 +79,7 @@
 
 		<link rel="stylesheet" href="GameMasterGui.css" type="text/css" />
 		<link rel="stylesheet" href="StatusBar.css" type="text/css" />
+		<link rel="stylesheet" href="Chatter.css" type="text/css" />
 		</style>
 	</head>
 	<body>

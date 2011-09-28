@@ -100,8 +100,12 @@ GameMaster.GameMaster = function() {
 		gui.handleMoveState(nick, moveState, timestamp, startstamp);
 	};
 
-	now.handleChat = function(nick, msg) {
-		gui.handleChat(nick, msg);
+	now.handleChat = function(user, msg) {
+		gui.handleChat(user, msg);
+	};
+
+	this.sendChat = function(msg) {
+		now.sendChat(msg);
 	};
 
 	this.sendGameInfo = function() {

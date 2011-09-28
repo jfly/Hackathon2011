@@ -6,5 +6,7 @@
 	-show timer
 -improve behavior of Status bar (see comments in StatusBar.js)
 -add chat support
+	-gray out our messages until we know they hit the server
+	-store last 100 messages on the server and feed them to the client upon connect
 
 **** Server side ****

@@ -1,0 +1,36 @@
+.messageArea {
+	height: 90%;
+	width: 100%;
+	border-bottom: 1px solid black;
+	word-wrap: break-word;
+	overflow-y: auto;
+	font-family: sans-serif;
+}
+
+span.nick {
+	font-weight:bold;
+}
+
+.message {
+	text-indent: -5px;
+	margin-left: 7px;
+}
+
+.chatBox {
+	outline-width: 0;
+	padding: 5px;
+	height: 10%;
+	width: 100%;
+	resize: none;
+	border: none;
+	font-family: sans-serif;
+}
+
+.chatArea {
+	position: absolute;
+	width: 25%;
+	height: 100%;
+	border-left: 1px solid black;
+	top: 0;
+	right: 0;
+}

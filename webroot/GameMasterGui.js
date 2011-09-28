@@ -10,6 +10,7 @@ DEFAULT_INSPECTION = 15;
 		var gameDropdown;
 		var scrambleButton;
 		var inspectionSecondsField;
+		var chatter = new Chatter.Chatter(gameMaster);
 		gamesDiv = document.createElement('div');
 		inspectionCountdownDiv = document.createElement('div');
 		inspectionCountdownDiv.id = 'inspection';
@@ -214,8 +215,8 @@ DEFAULT_INSPECTION = 15;
 			}
 		};
 
-		this.handleChat = function(nick, msg) {
-			console.log(nick, msg);
+		this.handleChat = function(user, msg) {
+			chatter.addMessage(user.nick, msg);
 		};
 
 
