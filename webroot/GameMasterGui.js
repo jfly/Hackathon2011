@@ -103,10 +103,10 @@ DEFAULT_INSPECTION = 15;
 			// cleaning up old games
 			var gameInfo = gameMaster.getGameInfo();
 			var game = gameMaster.getGame();
-			var members = gameMaster.getChannelMembers();
+			var clientId_user = gameMaster.getChannelMembers();
 			for(var clientId in gameBoards) {
 				var gameBoard = gameBoards[clientId];
-				if(!(clientId in members.clientId_user) || gameBoard.gameInstance.getName() != gameInfo.gameName) {
+				if(!(clientId in clientId_user) || gameBoard.gameInstance.getName() != gameInfo.gameName) {
 					// This game instance is either the wrong type of game, or is for a member
 					// who has left, so we can delete it.
 					gamesDiv.removeChild(gameBoard.div);
@@ -114,8 +114,8 @@ DEFAULT_INSPECTION = 15;
 				}
 			}
 			// creating new games
-			for(var clientId in members.clientId_user) {
-				var user = members.clientId_user[clientId];
+			for(var clientId in clientId_user) {
+				var user = clientId_user[clientId];
 				if(clientId in gameBoards) {
 					assert(gameBoards[clientId].gameInstance.getName() == gameInfo.gameName);
 				} else {
@@ -130,7 +130,7 @@ DEFAULT_INSPECTION = 15;
 				}
 				var nameDiv = $(gameBoards[clientId].nameDiv);
 				nameDiv.text(user.nick);
-				if(members.clientId_user[clientId].admin) {
+				if(clientId_user[clientId].admin) {
 					nameDiv.removeClass('nonAdminname');
 					nameDiv.addClass('adminName');
 				} else {

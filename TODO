@@ -1,12 +1,18 @@
 **** Client side ****
 -deterministic ordering of channel members? age or nick?
+	-visually indicate self, and always place it on top?
+-add control messages to chat
+	+joined channel
+	+user joined/parted/admined
+	-stop sending clientId_user list when it isn't necessary!
 -add a ready, set, go?
 	-show timer
 -add chat support
 	+gray out our messages until we know they hit the server
 	+reorder messages on client side if necessary
 	+store last 100 messages on the server and feed them to the client upon connect
-	-add timestamps, maybe gchat style
+	+add gchat style timestamps
+	-resizing smaller is losing fully scrolledness
 	-should the chat bar be resizeable? how about pop out-able?
 
 **** Server side ****

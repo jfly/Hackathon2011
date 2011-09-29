@@ -25,6 +25,7 @@ GameMaster.GameMaster = function() {
 		return games[gameInfo.gameName];
 	};
 	now.handleGameInfo = function(gameInfo_) {
+		console.log(gameInfo_);
 		StatusBar.setError('handleGameInfo', null);
 		// gameInfo should have a gameName attribute and an inspectionSeconds attribute
 		gameInfo = gameInfo_;
@@ -41,9 +42,9 @@ GameMaster.GameMaster = function() {
 		gui.handleRandomState();
 	};
 
-	var members = null;
+	var clientId_user = null;
 	this.getChannelMembers = function() {
-		return members;
+		return clientId_user;
 	};
 	var myself = null;
 	this.getMyself = function() {
@@ -64,17 +65,17 @@ GameMaster.GameMaster = function() {
 	this.isConnected = function() {
 		return myself && that.getGame();
 	};
-	now.handleChannelMembers = function(members_) {
-		members = members_;
+	now.handleChannelMembers = function(clientId_user_) {
+		clientId_user = clientId_user_;
 		var clientId = now.core.clientId;
-		if(clientId in members.clientId_user) {
+		if(clientId in clientId_user) {
 			StatusBar.setError('handleChannelMembers', null);
-			myself = members.clientId_user[clientId];
+			myself = clientId_user[clientId];
 			gui.connectionChanged();
 		} else {
-			StatusBar.setError('handleChannelMembers', "Couldn't find " + clientId + " in " + Object.keys(members_.clientId_user));
+			StatusBar.setError('handleChannelMembers', "Couldn't find " + clientId + " in " + Object.keys(clientId_user));
 			myself = null;
-			members = null;
+			clientId_user = null;
 			gui.connectionChanged();
 			return;
 		}
@@ -92,15 +93,30 @@ GameMaster.GameMaster = function() {
 
 		gui.handleChannelMembers();
 	};
+	now.handleMemberJoin = function(member, clientId_user_) {
+		chatter.addMessage({text: member.nick + " in da house."});
+		now.handleChannelMembers(clientId_user_);
+	};
+	now.handleMemberPart = function(member, clientId_user_) {
+		chatter.addMessage({text: member.nick + " has left the building."});
+		now.handleChannelMembers(clientId_user_);
+	};
+	now.handleMemberRename = function(member, clientId_user_) {
+		var oldNick = clientId_user[member.clientId].nick;
+		var newNick = member.nick;
+		chatter.addMessage({text: oldNick + " renamed to " + newNick + "."});
+		now.handleChannelMembers(clientId_user_);
+	};
+	now.handleAdmin = function(member, clientId_user_) {
+		chatter.addMessage({text: member.nick + " is now admin, bow to your new overlord."});
+		now.handleChannelMembers(clientId_user_);
+	};
 
 	now.handleMoveState = function(nick, moveState, timestamp, startstamp) {
 		gui.handleMoveState(nick, moveState, timestamp, startstamp);
 	};
 
-	now.handleMessages = function(messages, initialConnect) {
-		if(initialConnect) {
-			chatter.clear();
-		}
+	now.handleMessages = function(messages) {
 		for(var i = 0; i < messages.length; i++) {
 			chatter.addMessage(messages[i]);
 		}
@@ -132,18 +148,32 @@ GameMaster.GameMaster = function() {
 		var desiredNick = nick_ || that.getMyNick() || "Pimp";
 		var desiredChannelName = channelName_ || that.getChannelName() || "PimpsAtSea";
 		if(desiredNick == that.getMyNick() && desiredChannelName == that.getChannelName()) {
-			StatusBar.setError('joinChannel', null)
-			StatusBar.setError('handleGameInfo', null)
+			StatusBar.setError('joinChannel', null);
+			StatusBar.setError('andleGameInfo', null);
 			StatusBar.setError('handleChannelMembers', null);
 			return;
 		}
 
-		StatusBar.setError('joinChannel', 'Joining channel #' + desiredChannelName + ' as ' + desiredNick);
+		var renameAttempt = desiredChannelName == that.getChannelName();
+
+		var joinAttemptMessage = null;
+		if(renameAttempt) {
+			//joinAttemptMessage = 'Renaming to new nick ' + desiredNick + '.';
+		} else {
+			chatter.clear();
+			joinAttemptMessage = 'Joining channel #' + desiredChannelName + ' as ' + desiredNick + '.';
+			chatter.addMessage({text: joinAttemptMessage});
+		}
+		StatusBar.setError('joinChannel', joinAttemptMessage);
+		console.log('waiting...');
 		StatusBar.setError('handleGameInfo', 'Waiting...');
 		StatusBar.setError('handleChannelMembers', 'Waiting...');
 		now.joinChannel(desiredNick, desiredChannelName, function(error, nick_, channelName_) {
 			gui.connectionChanged();
 			if(!error) {
+				if(!renameAttempt) {
+					chatter.addMessage({text: 'Welcome to #' + channelName_ + "."});
+				}
 				StatusBar.setError('joinChannel', null);
 			} else if(error == GM.NICK_IN_USE) {
 				var prefix_intSuffix = desiredNick.match(/([^\d]*)(\d*)/);
@@ -156,7 +186,9 @@ GameMaster.GameMaster = function() {
 					newSuffix = 1 + parseInt(suffix, 10);
 				}
 				var newDesiredNick = prefix + newSuffix;
-				StatusBar.setError('joinChannel', desiredNick + ' in use, attempting ' + newDesiredNick);
+				var retryMessage = 'Nick ' + desiredNick + ' in use, attempting ' + newDesiredNick + '.'
+				chatter.addMessage({text: retryMessage});
+				StatusBar.setError('joinChannel', retryMessage);
 				that.joinChannel(newDesiredNick, desiredChannelName);
 			} else {
 				assert(false, "Unrecognized error " + error);

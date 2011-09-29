@@ -6,18 +6,39 @@
 	overflow-y: auto;
 	font-family: sans-serif;
 }
+.messageArea > * {
+	margin-left: 5px;
+	margin-right: 5px;
+}
 
 span.nick {
 	font-weight:bold;
 }
 
-.message {
-	text-indent: -5px;
+.unconfirmedMessage {
+	text-indent: -7px;
 	margin-left: 7px;
+	color: gray;
 }
 
-.unconfirmedMessage {
+.confirmedMessage {
+	text-indent: -7px;
+	margin-left: 7px;
+	color: black;
+}
+
+.controlMessage {
+	/*color: gray;*/
+	text-indent: -7px;
+	margin-left: 7px;
+	font-style: italic;
+}
+
+.messageTimestamp {
 	color: gray;
+	font-size: 90%;
+	text-indent: -7px;
+	margin-left: 7px;
 }
 
 .chatBox {

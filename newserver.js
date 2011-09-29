@@ -38,7 +38,9 @@ function log(statCode, url, ip, err) {
 }
 httpServer.listen(8001);
 
+// TODO - i've disabled websockets because they're making chrome crash...
 var everyone = nowjs.initialize(httpServer);
+//var everyone = nowjs.initialize(httpServer, {socketio: {transports: ['xhr-polling', 'jsonp-polling']}});
 
 function UserSet() {
 	this.nick_user = {};
@@ -140,12 +142,10 @@ function Channel(channelName) {
 	this.channelName = channelName;
 	var channelUsers = new UserSet();
 	var adminUser = null;
-	this.sendMemberList = function() {
-		that.getGroup().now.handleChannelMembers(channelUsers);
-	};
+
 	this.userRenamed = function(oldNick, user) {
 		channelUsers.userRenamed(oldNick, user);
-		that.sendMemberList();
+		that.getGroup().now.handleMemberRename(user, channelUsers.clientId_user); //TODO
 	};
 	this.addUser = function(user) {
 		channelUsers.addUser(user);
@@ -153,14 +153,15 @@ function Channel(channelName) {
 			adminUser = user;
 			user.setAdmin(true);
 		}
-		// Add this user to the underlying nodejs group...
-		that.getGroup().addUser(user.clientId);
-		// and notify everyone in the channel of the new members list
-		this.sendMemberList();
 		// Welcome the new member with the last few messages
 		nowjs.getClient(user.clientId, function() {
 			this.now.handleMessages(messages, true);
-		})
+			this.now.handleChannelMembers(channelUsers.clientId_user);
+		});
+		// and notify everyone in the channel of the new members list
+		that.getGroup().now.handleMemberJoin(user, channelUsers.clientId_user); //TODO
+		// Add this user to the underlying nodejs group...
+		that.getGroup().addUser(user.clientId);
 	};
 	this.removeUser = function(user) {
 		channelUsers.removeUser(user);
@@ -180,13 +181,14 @@ function Channel(channelName) {
 			if(!adminUser) {
 				adminUser = channelUsers.getOldestUser();
 				adminUser.setAdmin(true);
+				that.getGroup().now.handleAdmin(adminUser, channelUsers.clientId_user); //TODO
 			}
 		}
 
 		// Remove this user from the underlying nodejs group...
 		that.getGroup().removeUser(user.clientId);
 		// and notify everyone in the channel of the new members list
-		this.sendMemberList();
+		that.getGroup().now.handleMemberPart(user, channelUsers.clientId_user); //TODO
 	};
 
 	var messages = [];
