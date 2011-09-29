@@ -1,6 +1,7 @@
 var StatusBar = {};
 (function() {
 	var errorMap = {};
+	this.errorMap = errorMap; // This is purely for debugging purposes
 	StatusBar.setError = function(key, error) {
 		//console.log(key);
 		//console.log(errorMap);

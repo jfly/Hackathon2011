@@ -1,14 +1,19 @@
 body {
 	margin: 0px;
+	overflow: hidden;
 }
 
 .info {
 	border-bottom: 1px solid black;
+	height: 23%;
 	width: 73%;
 	padding: 1%;
 }
 
 .gameArea {
+	/* TODO - this ain't right */
+	height: 69%;
 	width: 73%;
 	padding: 1%;
+	overflow-y: auto;
 }

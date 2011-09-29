@@ -44,12 +44,21 @@ Chatter.Chatter = function(gameMaster) {
 		unconfirmedMessages[key] = message;
 	}
 	function appendMessageDiv(messageDiv) {
-		var isFullyScrolled = ( 2 + messageArea.scrollTop() + messageArea.outerHeight() >= messageArea[0].scrollHeight );
 		messageArea.append(messageDiv);
+		maybeFullyScroll();
+	}
+	var isFullyScrolled = true;
+	messageArea.scroll(function(e) {
+		isFullyScrolled = ( 2 + messageArea.scrollTop() + messageArea.outerHeight() >= messageArea[0].scrollHeight );
+	});
+	function maybeFullyScroll() {
 		if(isFullyScrolled) {
 			messageArea.scrollTop(messageArea[0].scrollHeight);
 		}
 	}
+	$(window).resize(function(e) {
+		maybeFullyScroll();
+	});
 
 	var lastMessageDiv = null;
 	function maybeShowTimestamp() {
@@ -82,7 +91,6 @@ Chatter.Chatter = function(gameMaster) {
 		appendMessageDiv(messageDiv);
 		lastMessageDiv = messageDiv;
 		maybeShowTimestamp();
-		console.log(lastMessageDiv.timestamp);
 		assert(lastMessageDiv.timestamp);
 	}
 	function createMessageDiv(message) {
