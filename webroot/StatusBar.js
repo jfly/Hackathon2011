@@ -1,12 +1,13 @@
 var StatusBar = {};
 (function() {
 	var errorMap = {};
-	this.errorMap = errorMap; // This is purely for debugging purposes
 	StatusBar.setError = function(key, error) {
-		//console.log(key);
-		//console.log(errorMap);
-		//console.log(error);
-		//console.log(errorMap[key]);
+		if(key == 'handleGameInfo') {
+			console.log(key);
+			console.log(errorMap);
+			console.log(error);
+			console.log(errorMap[key]);
+		}
 		var hasChanged = false;
 		if(!error) {
 			if(key in errorMap) {
@@ -19,7 +20,9 @@ var StatusBar = {};
 			}
 			errorMap[key] = error;
 		}
-		//console.log(hasChanged);
+		if(key == 'handleGameInfo') {
+			console.log(hasChanged);
+		}
 		if(hasChanged) {
 			StatusBar.refresh();
 		}
@@ -44,7 +47,7 @@ var StatusBar = {};
 
 			// We wait a moment before showing the status bar to prevent flickering
 			// (when an error gets added and the almost immediately removed)
-			if(!pendingShow) {
+			if(!pendingShow && !$(connectionStatus).is(":visible")) {
 				pendingShow = setTimeout(function() {
 					pendingShow = null;
 					assert(errors.length > 0);

@@ -16,7 +16,7 @@
 	+resizing smaller is losing fully scrolledness
 	-should the chat bar be resizeable? how about pop out-able?
 
--BUG: on startup one of the state bars doesn't go away
++BUG: on startup one of the state bars doesn't go away
 
 **** Server side ****
 -if the sole member of a channel hits refresh, we immediately nuck the channel, maybe we could set off a timer to do so instead?
