@@ -74,19 +74,28 @@ function UserSet() {
 		return Object.keys(that.nick_user);
 	};
 	this.getOldestUser = function() {
-		// TODO - actually choose oldest User!
 		var nicks = that.getNicks();
-		assert.ok(nicks.length > 0);
-		return that.nick_user[nicks[0]];
+		var oldestTime = Infinity;
+		var oldestUser = null;
+		for(var i = 0; i < nicks.length; i++) {
+			var user = that.getUserByNick(nicks[i]);
+			if(user.joinTime < oldestTime) {
+				oldestUser = user;
+				oldestTime = user.joinTime;
+			}
+		}
+		assert.ok(oldestUser);
+		return oldestUser;
 	};
 
 	var that = this;
 }
-// TODO - clean up users & channels
+
 var users = new UserSet();
 function User(nick_, clientId_) {
 	this.nick = nick_;
 	this.clientId = clientId_;
+	this.joinTime = new Date().getTime();
 
 	this.channel = null;
 	function part() {

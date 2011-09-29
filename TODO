@@ -1,7 +1,5 @@
 **** Client side ****
 -deterministic ordering of channel members? age or nick?
-	-need to add age attribute to members
-		-use age to assign admin status
 -add a ready, set, go?
 	-show timer
 -add chat support
