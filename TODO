@@ -14,8 +14,8 @@
 	+store last 100 messages on the server and feed them to the client upon connect
 	+add gchat style timestamps
 	+resizing smaller is losing fully scrolledness
+	+focus indicator for chat bar
 	-should the chat bar be resizeable? how about pop out-able?
-	-focus indicator for chat bar
 
 +BUG: on startup one of the state bars doesn't go away
 
