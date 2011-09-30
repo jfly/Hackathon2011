@@ -25,7 +25,6 @@ GameMaster.GameMaster = function() {
 		return games[gameInfo.gameName];
 	};
 	now.handleGameInfo = function(gameInfo_) {
-		console.log(gameInfo_);
 		StatusBar.setError('handleGameInfo', null);
 		// gameInfo should have a gameName attribute and an inspectionSeconds attribute
 		gameInfo = gameInfo_;
@@ -165,7 +164,6 @@ GameMaster.GameMaster = function() {
 			chatter.addMessage({text: joinAttemptMessage});
 		}
 		StatusBar.setError('joinChannel', joinAttemptMessage);
-		console.log('waiting...');
 		StatusBar.setError('handleGameInfo', 'Waiting...');
 		StatusBar.setError('handleChannelMembers', 'Waiting...');
 		now.joinChannel(desiredNick, desiredChannelName, function(error, nick_, channelName_) {

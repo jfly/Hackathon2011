@@ -2,12 +2,6 @@ var StatusBar = {};
 (function() {
 	var errorMap = {};
 	StatusBar.setError = function(key, error) {
-		if(key == 'handleGameInfo') {
-			console.log(key);
-			console.log(errorMap);
-			console.log(error);
-			console.log(errorMap[key]);
-		}
 		var hasChanged = false;
 		if(!error) {
 			if(key in errorMap) {
@@ -19,9 +13,6 @@ var StatusBar = {};
 				hasChanged = true;
 			}
 			errorMap[key] = error;
-		}
-		if(key == 'handleGameInfo') {
-			console.log(hasChanged);
 		}
 		if(hasChanged) {
 			StatusBar.refresh();

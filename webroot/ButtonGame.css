@@ -1,0 +1,11 @@
+.ButtonGame {
+}
+.ButtonGameButton {
+	border: 1px solid black;
+}
+.ButtonGameUnsolvedButton {
+	background-color: black;
+	color: white;
+	text-align: center;
+	cursor: pointer;
+}

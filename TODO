@@ -15,6 +15,7 @@
 	+add gchat style timestamps
 	+resizing smaller is losing fully scrolledness
 	-should the chat bar be resizeable? how about pop out-able?
+	-focus indicator for chat bar
 
 +BUG: on startup one of the state bars doesn't go away
 
