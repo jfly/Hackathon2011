@@ -5,15 +5,12 @@ body {
 
 .info {
 	border-bottom: 1px solid black;
-	height: 23%;
-	width: 73%;
-	padding: 1%;
+	height: 25%;
+	width: 75%;
 }
 
 .gameArea {
-	/* TODO - this ain't right */
-	height: 69%;
-	width: 73%;
-	padding: 1%;
+	height: 75%;
+	width: 75%;
 	overflow-y: auto;
 }

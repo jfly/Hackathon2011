@@ -11,6 +11,7 @@ DEFAULT_INSPECTION = 15;
 		var scrambleButton;
 		var inspectionSecondsField;
 		gamesDiv = document.createElement('div');
+		$(gamesDiv).css('position', 'relative');
 		$(gamesDiv).addClass('gameArea');
 		inspectionCountdownDiv = document.createElement('div');
 		inspectionCountdownDiv.id = 'inspection';
@@ -35,7 +36,6 @@ DEFAULT_INSPECTION = 15;
 		gameDropdown = document.createElement('select');
 		var games = GameMaster.getGames();
 		for(var gameName in games) {
-			var game = games[gameName];
 			var option = document.createElement('option');
 			option.value = gameName;
 			option.appendChild(document.createTextNode(gameName));
@@ -106,27 +106,40 @@ DEFAULT_INSPECTION = 15;
 			var clientId_user = gameMaster.getChannelMembers();
 			for(var clientId in gameBoards) {
 				var gameBoard = gameBoards[clientId];
-				if(!(clientId in clientId_user) || gameBoard.gameInstance.getName() != gameInfo.gameName) {
-					// This game instance is either the wrong type of game, or is for a member
+				if(!(clientId in clientId_user)) {
+					// This game board is for a user
 					// who has left, so we can delete it.
 					gamesDiv.removeChild(gameBoard.div);
 					delete gameBoards[clientId];
+				} else if(gameBoard.gameInstance.getName() != gameInfo.gameName) {
+					// This game instance is the wrong type of game
+					$(gameBoards[clientId].gameDiv).remove();
+					gameBoards[clientId].gameInstance = null;
 				}
 			}
 			// creating new games
 			for(var clientId in clientId_user) {
 				var user = clientId_user[clientId];
+				var gameBoard = null;
 				if(clientId in gameBoards) {
-					assert(gameBoards[clientId].gameInstance.getName() == gameInfo.gameName);
+					gameBoard = gameBoards[clientId];
+					if(gameBoards[clientId].gameInstance) {
+						assert(gameBoards[clientId].gameInstance.getName() == gameInfo.gameName);
+					}
 				} else {
-					var gameInstance = new game(moveApplied);
-					var babbyDiv = gameInstance.getDiv();
-					var containerDiv = document.createElement('div');
-					containerDiv.appendChild(babbyDiv);
+					var containerDiv = document.createElement('span');
+					$(containerDiv).css('position', 'absolute');
 					var nameDiv = document.createElement('div');
 					containerDiv.appendChild(nameDiv);
-					gameBoards[clientId] = { gameInstance: gameInstance, div: containerDiv, nameDiv: nameDiv };
+					gameBoard = { div: containerDiv, nameDiv: nameDiv };
+					gameBoards[clientId] = gameBoard;
 					gamesDiv.appendChild(containerDiv);
+				}
+				if(!gameBoard.gameInstance) {
+					var gameInstance = new game(moveApplied);
+					gameBoard.gameInstance = gameInstance;
+					gameBoard.gameDiv = gameInstance.getDiv();
+					gameBoard.div.appendChild(gameBoard.gameDiv);
 				}
 				var nameDiv = $(gameBoards[clientId].nameDiv);
 				nameDiv.text(user.nick);
@@ -138,7 +151,155 @@ DEFAULT_INSPECTION = 15;
 					nameDiv.removeClass('adminName');
 				}
 			}
+			pageResized();
 		}
+		function pageResized() {
+			var game = gameMaster.getGame();
+			var myClientId = gameMaster.getMyself().clientId;
+			var myBoard = gameBoards[myClientId];
+			assert(myBoard);
+			var nickHeight = $(myBoard.nameDiv).height();
+
+			var THEM_ME_SCALE = 0.75;
+
+			var clientIds = [];
+			for(var clientId in gameBoards) {
+				if(clientId != myClientId) {
+					clientIds.push(clientId);
+				}
+			}
+
+
+			// TODO - don't let nicks/times overflow? turn into marquee? lolol
+ 			// TODO - To layout stuff optimally, I think we need to take the
+			// aspect ratio of our available area into account.
+			var preferredSize = game.getPreferredSize();
+			var minSize = game.getMinimumSize();
+			function toAtLeastMinimumSize(size, padding) {
+				if(size.width) {
+					assert(!size.height);
+					size.width = Math.min(availableSpace.width-padding.width, size.width);
+					size.height = Math.min(availableSpace.height-padding.height, boardHeightToWidth*size.width);
+					size.width = size.height/boardHeightToWidth;
+				} else {
+					assert(size.height);
+					assert(!size.width);
+					size.height = Math.min(availableSpace.height-padding.height, size.height);
+					size.width = Math.min(availableSpace.width-padding.width, size.height/boardHeightToWidth);
+					size.height = boardHeightToWidth*size.width;
+				}
+				if(THEM_ME_SCALE*size.width < minSize.width) {
+					size.width = minSize.width/THEM_ME_SCALE;
+					size.height = minSize.height/THEM_ME_SCALE;
+				}
+				assert(THEM_ME_SCALE*size.width >= minSize.width);
+				assert(THEM_ME_SCALE*size.height >= minSize.height);
+				return size;
+			}
+			function scaleSize(scale, size) {
+				return { width: scale*size.width, height: scale*size.height };
+			}
+			function copySize(size) {
+				return scaleSize(1, size);
+			}
+			function addSizes(size1, size2) {
+				var sum = {};
+				sum.width = size1.width + size2.width;
+				sum.height = size1.height + size2.height;
+				return sum;
+			}
+			function diffSizes(size1, size2) {
+				return addSizes(size1, scaleSize(-1, size2));
+			}
+			var boardHeightToWidth = preferredSize.height / preferredSize.width;
+
+			var availableSpace = { 'width': $(gamesDiv).width(), 'height': $(gamesDiv).height() };
+			var howManyBoards = { 'width': -1, 'height': -1 };
+			var growDimension = (boardHeightToWidth >= 1) ? 'width' : 'height';
+			//TODO when one scrollbar appears, the other tends to appear as well
+			var otherDimension = (growDimension == 'width') ? 'height' : 'width';
+			var myBoardSize = null;
+			var myActualBoardSize = null;
+			var theirBoardSize = null;
+			var theirActualBoardSize = null;
+			var padding = { width: 0, height: nickHeight };
+			while(myBoardSize == null || howManyBoards.width*howManyBoards.height < clientIds.length) {
+				howManyBoards[growDimension]++;
+				myBoardSize = {};
+				myBoardSize[growDimension] = (availableSpace[growDimension]-(1+howManyBoards[growDimension])*padding[growDimension])/(1+THEM_ME_SCALE*howManyBoards[growDimension]);
+				myBoardSize = toAtLeastMinimumSize(myBoardSize, padding);
+				myActualBoardSize = copySize(myBoardSize);
+				myActualBoardSize = addSizes(myActualBoardSize, padding);
+
+				theirBoardSize = scaleSize(THEM_ME_SCALE, myBoardSize);
+				theirActualBoardSize = copySize(theirBoardSize);
+				theirActualBoardSize = addSizes(theirActualBoardSize, padding);
+				// How many boards can we fit in the other dimension?
+				howManyBoards[otherDimension] = Math.floor(availableSpace[otherDimension] / theirActualBoardSize[otherDimension]);
+				if(howManyBoards.width*howManyBoards.height < clientIds.length) {
+					// Before we grow another unit, lets see if we could simply
+					// tighten up inside of our allocated growDimension and make stuff
+					// fit.
+					howManyBoards[otherDimension]++;
+					theirActualBoardSize[otherDimension] = availableSpace[otherDimension]/howManyBoards[otherDimension];
+					theirBoardSize = copySize(theirActualBoardSize);
+					theirBoardSize = diffSizes(theirBoardSize, padding);
+					//TODO - comment!
+					delete theirBoardSize[growDimension];
+					theirBoardSize = toAtLeastMinimumSize(theirBoardSize, padding);
+					theirActualBoardSize = copySize(theirBoardSize);
+					theirActualBoardSize = addSizes(theirActualBoardSize, padding);
+					if(theirActualBoardSize[otherDimension]*howManyBoards[otherDimension] > availableSpace[otherDimension]) {
+						//TODO - comment!
+						howManyBoards[otherDimension]--;
+						continue;
+					}
+					var newGrowBoards = Math.floor((availableSpace[growDimension] - myActualBoardSize[growDimension]) / theirActualBoardSize[growDimension]);
+					if(newGrowBoards != howManyBoards[growDimension]) {
+						//TODO - comment!
+						howManyBoards[otherDimension]--;
+						continue;
+					}
+				}
+			}
+			howManyBoards[otherDimension] = Math.ceil(clientIds.length/howManyBoards[growDimension]);
+
+			myBoard.gameInstance.setSize(myBoardSize);
+			var toCss = { width: 'left', height: 'top' };
+			var centerMyBoard = {};
+			centerMyBoard[toCss[otherDimension]] = (availableSpace[otherDimension]-myActualBoardSize[otherDimension])/2;
+			centerMyBoard[toCss[growDimension]] = Math.max(0, availableSpace[growDimension]-(myActualBoardSize[growDimension]+howManyBoards[growDimension]*theirActualBoardSize[growDimension]))/2;
+			$(myBoard.div).css('top', centerMyBoard.top);
+			$(myBoard.div).css('left', centerMyBoard.left);
+			var offset = {};
+			offset[growDimension] = myActualBoardSize[growDimension] + centerMyBoard[toCss[growDimension]];
+			offset[otherDimension] = 0;
+			var centerTheirBoard = {};
+			centerTheirBoard[toCss[otherDimension]] = (availableSpace[otherDimension]-howManyBoards[otherDimension]*theirActualBoardSize[otherDimension])/2;
+			centerTheirBoard[toCss[growDimension]] = 0;
+			var boardIndex = 0;
+			for(var i = 0; i < howManyBoards[otherDimension]; i++) {
+				if(boardIndex >= clientIds.length) {
+					break;
+				}
+				for(var j = 0; j < howManyBoards[growDimension]; j++) {
+					var clientId = clientIds[boardIndex];
+					var gameBoard = gameBoards[clientId];
+					gameBoard.gameInstance.setSize(theirBoardSize);
+					var heightIndex = (otherDimension == 'height') ? i : j;
+					$(gameBoard.div).css('top', offset.height + heightIndex*theirActualBoardSize.height + centerTheirBoard.top);
+					var widthIndex = (otherDimension == 'width') ? i : j;
+					$(gameBoard.div).css('left', offset.width + widthIndex*theirActualBoardSize.width + centerTheirBoard.left);
+					boardIndex++;
+					if(boardIndex >= clientIds.length) {
+						// Gah, why doesn't every language have labelled breaks?
+						break;
+					}
+				}
+			}
+			assert(boardIndex == clientIds.length);
+		}
+		$(window).resize(pageResized);
 		function moveApplied(moveState) {
 			gameMaster.sendMoveState(moveState, startstamp);
 		}
@@ -154,7 +315,7 @@ DEFAULT_INSPECTION = 15;
 		var startstamp = 0;
 		function refreshInspection() {
 			$(inspectionCountdownDiv).show();
-			var secondsUsed = parseInt((new Date().getTime() - inspectionStart)/1000);
+			var secondsUsed = Math.floor((new Date().getTime() - inspectionStart)/1000);
 			var gameInfo = gameMaster.getGameInfo();
 			var timeRemaining = gameInfo.inspectionSeconds - secondsUsed;
 			$(inspectionCountdownDiv).text(timeRemaining);
@@ -203,12 +364,8 @@ DEFAULT_INSPECTION = 15;
 				if(gameInstance.getState() != moveState.oldState) {
 					gameInstance.setState(moveState.oldState);
 				}
-				//TODO
-				if(!gameInstance.isLegalMove(moveState.move)) {
-					gameInstance.setState(moveState.state);
-				} else {
-					gameInstance.applyMove(moveState.move);
-				}
+				assert(gameInstance.isLegalMove(moveState.move));
+				gameInstance.applyMove(moveState.move);
 			}
 			if(gameInstance.isFinished()) {
 				var totalTime = (timestamp - startstamp)/1000;

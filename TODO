@@ -17,6 +17,10 @@
 	+focus indicator for chat bar
 	-should the chat bar be resizeable? how about pop out-able?
 
+-if the user types in empty nick or channelname, nothing happens
+-add internal padding to infoDiv and gameArea
+-BUG: chat scroll doesn't stay down if there are control messages?
+
 +BUG: on startup one of the state bars doesn't go away
 
 **** Server side ****

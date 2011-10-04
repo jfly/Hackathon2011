@@ -14,19 +14,13 @@
 		var ButtonGame = function(moveCallback) {
 			var lastButtonValue = -1;
 			var buttons = null;
-			var currentState = null;
 			this.setState = function(scramble) {
 				solving = false;
-				currentState = scramble;
 				assert(scramble == null || scramble.length == WIDTH*HEIGHT);
 
-				var cellWidth = (size.width - PADDING*WIDTH) / WIDTH;
-				var cellHeight = (size.height - PADDING*HEIGHT) / HEIGHT;
 				lastButtonValue = -1;
 				var gameTable = document.createElement('table');
 				gameDiv.empty();
-				gameDiv.width(size.width);
-				gameDiv.height(size.height);
 				gameDiv.append($(gameTable));
 				buttons = [];
 				lastButtonValue = WIDTH*HEIGHT;
@@ -38,10 +32,6 @@
 						var button = $(row.insertCell(-1));
 						buttonRow.push(button);
 						button.addClass("ButtonGameButton");
-						button.css('font-size', cellHeight/2 + 'px');
-
-						button.width(cellWidth-4);
-						button.height(cellHeight);
 						var index = WIDTH*i+j;
 						if(scramble === null || scramble[index] === null) {
 							// A solved button has no text
@@ -54,25 +44,41 @@
 							button.buttonValue = buttonValue;
 							button.text(buttonValue);
 						}
-						button.click(buttonClicked.bind(null, i, j));
+						button.mousedown(buttonClicked.bind(null, i, j));
 					}
 				}
 				lastButtonValue--;
+				resize();
 			};
-			this.getPreferredSize = function() {
-				return { width: WIDTH*50, height: HEIGHT*50 };
-			};
-			this.getMinimumSize = function() {
-				return { width: WIDTH*30, height: HEIGHT*30 };
-			};
-			var size = this.getPreferredSize();
-			this.setHeight = function(height) {
-				var preferredSize = that.getPreferredSize();
+			function resize() {
+				gameDiv.width(size.width);
+				gameDiv.height(size.height);
+				var cellWidth = (size.width - PADDING*WIDTH/2) / WIDTH;
+				var cellHeight = (size.height - PADDING*HEIGHT/2) / HEIGHT;
+				for(var i = 0; i < buttons.length; i++) {
+					for(var j = 0; j < buttons[i].length; j++) {
+						var button = buttons[i][j];
+						button.css('font-size', cellHeight/2 + 'px');
+						button.width(cellWidth-4);
+						button.height(cellHeight);
+					}
+				}
+			}
+			var size = ButtonGame.getPreferredSize();
+			this.setSize = function(size_) {
+				size = size_;
+				var minimumSize = ButtonGame.getMinimumSize();
+				assert(size.width >= minimumSize.width);
+				assert(size.height >= minimumSize.height);
+				resize();
+			}
+			/*this.setHeight = function(height) {
+				var preferredSize = ButtonGame.getPreferredSize();
 				size = {};
 				size.height = height;
 				size.width = (preferredSize.width/preferredSize.height)*height;
 				that.setState(currentState);
-			};
+			};*/ //TODO - should we have this method?
 			this.getState = function() {
 				var state = [];
 				for(var i = 0; i < buttons.length; i++) {
@@ -93,6 +99,7 @@
 				lastButtonValue = button.buttonValue;
 				button.buttonValue = null;
 				button.text('');
+				button.css('cursor', '');
 				button.removeClass('ButtonGameUnsolvedButton');
 			};
 			this.isFinished = function() {
@@ -105,6 +112,12 @@
 			var solving = false;
 			this.endInspection = function() {
 				solving = true;
+				for(var i = 0; i < buttons.length; i++) {
+					for(var j = 0; j < buttons[i].length; j++) {
+						var button = buttons[i][j];
+						button.css('cursor', 'pointer');
+					}
+				}
 			};
 			this.getDiv = function() {
 				return gameDiv[0];
@@ -143,6 +156,12 @@
 			scramble.sort(function() { return 0.5-Math.random(); });
 			return scramble;
 		};
+		ButtonGame.getPreferredSize = function() {
+			return { width: WIDTH*50, height: HEIGHT*50 };
+		};
+		ButtonGame.getMinimumSize = function() {
+			return { width: WIDTH*30, height: HEIGHT*30 };
+		};
 		ButtonGame.gameName = WIDTH + "x" + HEIGHT + "ButtonGame";
 		return ButtonGame;
 	}
@@ -151,5 +170,6 @@
 	GameMaster.addGame(ButtonGameMaker(4, 4));
 	GameMaster.addGame(ButtonGameMaker(5, 5));
 	GameMaster.addGame(ButtonGameMaker(10, 5));
+	GameMaster.addGame(ButtonGameMaker(5, 10));
 
 })();

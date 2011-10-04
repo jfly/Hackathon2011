@@ -20,6 +20,8 @@
 
 .adminName {
 	font-weight: bold;
+	height: 20px;
 }
 .nonAdminName {
+	height: 20px;
 }
