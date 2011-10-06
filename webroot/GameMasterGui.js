@@ -13,7 +13,7 @@ DEFAULT_INSPECTION = 15;
 		var inspectionSecondsField;
 		gamesDiv = document.createElement('div');
 		$(gamesDiv).css('position', 'relative');
-		$(gamesDiv).addClass('gameArea');
+		$(gamesDiv).addClass('gamesDiv');
 		inspectionCountdownDiv = document.createElement('div');
 		inspectionCountdownDiv.id = 'inspection';
 		infoDiv = document.createElement('div');
@@ -215,8 +215,16 @@ DEFAULT_INSPECTION = 15;
 			var availableSpace = { 'width': $(gamesDiv).width(), 'height': $(gamesDiv).height() };
 			var howManyBoards = { 'width': -1, 'height': -1 };
 			var growDimension = (boardHeightToWidth >= 1) ? 'width' : 'height';
-			//TODO when one scrollbar appears, the other tends to appear as well
 			var otherDimension = (growDimension == 'width') ? 'height' : 'width';
+
+			if(growDimension == 'width') {
+				$(gamesDiv).css('overflow-x', 'auto');
+				$(gamesDiv).css('overflow-y', 'hidden');
+			} else {
+				$(gamesDiv).css('overflow-x', 'hidden');
+				$(gamesDiv).css('overflow-y', 'auto');
+			}
+
 			var myBoardSize = null;
 			var myActualBoardSize = null;
 			var theirBoardSize = null;

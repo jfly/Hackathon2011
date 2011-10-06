@@ -7,6 +7,5 @@ body {
 	border-bottom: 1px solid black;
 }
 
-.gameArea {
-	overflow-y: auto;
+.gamesDiv {
 }
