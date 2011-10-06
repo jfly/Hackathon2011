@@ -5,6 +5,7 @@ DEFAULT_INSPECTION = 15;
 
 	GameMasterGui.GameMasterGui = function(gameMaster) {
 		var gamesDiv;
+
 		var inspectionCountdownDiv;
 		var infoDiv;
 		var gameDropdown;
@@ -69,11 +70,6 @@ DEFAULT_INSPECTION = 15;
 		var disabledDiv = $(document.createElement('div'));
 		disabledDiv.addClass("grayOut");
 		disabledDiv.hide();
-
-		document.body.appendChild(infoDiv);
-		document.body.appendChild(gamesDiv);
-		document.body.appendChild(inspectionCountdownDiv);
-		$('body').append(disabledDiv);
 
 		var gameBoards = {};
 		function refresh() {
@@ -155,6 +151,9 @@ DEFAULT_INSPECTION = 15;
 		}
 		function pageResized() {
 			var game = gameMaster.getGame();
+			if(!game) {
+				return;
+			}
 			var myClientId = gameMaster.getMyself().clientId;
 			var myBoard = gameBoards[myClientId];
 			assert(myBoard);
@@ -176,14 +175,14 @@ DEFAULT_INSPECTION = 15;
 			var preferredSize = game.getPreferredSize();
 			var minSize = game.getMinimumSize();
 			function toAtLeastMinimumSize(size, padding) {
-				if(size.width) {
-					assert(!size.height);
+				if('width' in size) {
+					assert(!('height' in size));
 					size.width = Math.min(availableSpace.width-padding.width, size.width);
 					size.height = Math.min(availableSpace.height-padding.height, boardHeightToWidth*size.width);
 					size.width = size.height/boardHeightToWidth;
 				} else {
-					assert(size.height);
-					assert(!size.width);
+					assert('height' in size);
+					assert(!('width' in size));
 					size.height = Math.min(availableSpace.height-padding.height, size.height);
 					size.width = Math.min(availableSpace.width-padding.width, size.height/boardHeightToWidth);
 					size.height = boardHeightToWidth*size.width;
@@ -236,7 +235,11 @@ DEFAULT_INSPECTION = 15;
 				theirActualBoardSize = addSizes(theirActualBoardSize, padding);
 				// How many boards can we fit in the other dimension?
 				howManyBoards[otherDimension] = Math.floor(availableSpace[otherDimension] / theirActualBoardSize[otherDimension]);
-				if(howManyBoards.width*howManyBoards.height < clientIds.length) {
+				if(howManyBoards[otherDimension] == 0) {
+					// We must ensure that at least one board is allowed in the other
+					// dimension, otherwise we'll never be able to fit any boards.
+					howManyBoards[otherDimension] = 1;
+				} else if(howManyBoards.width*howManyBoards.height < clientIds.length) {
 					// Before we grow another unit, lets see if we could simply
 					// tighten up inside of our allocated growDimension and make stuff
 					// fit.
@@ -299,7 +302,6 @@ DEFAULT_INSPECTION = 15;
 			}
 			assert(boardIndex == clientIds.length);
 		}
-		$(window).resize(pageResized);
 		function moveApplied(moveState) {
 			gameMaster.sendMoveState(moveState, startstamp);
 		}
@@ -373,6 +375,23 @@ DEFAULT_INSPECTION = 15;
 			}
 		};
 
+		var boardAndInfoDiv = $('<div/>');
+		boardAndInfoDiv.append($(infoDiv));
+		boardAndInfoDiv.append($(gamesDiv));
+		boardAndInfoDiv.append($(inspectionCountdownDiv));
+		boardAndInfoDiv.append(disabledDiv);
+		boardAndInfoDiv.setSize = function(width, height) {
+			// TODO !!!
+			//console.log(width + " " + height);
+			$(infoDiv).width(width);
+			var infoDivHeight = $(infoDiv).height();
+
+			$(gamesDiv).width(width);
+			$(gamesDiv).height(height - infoDivHeight);
+			pageResized();
+		};
+
+		this.element = boardAndInfoDiv;
 		var that = this;
 	};
 

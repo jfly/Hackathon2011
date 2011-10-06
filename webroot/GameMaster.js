@@ -11,8 +11,10 @@ GameMaster.addGame = function(game) {
 	games[game.gameName] = game;
 };
 GameMaster.GameMaster = function() {
-	var chatter = new Chatter.Chatter(this);
 	var gui = new GameMasterGui.GameMasterGui(this);
+	var chatter = new Chatter.Chatter(this);
+	var vertSplit = new Split.VerticalSplit(gui.element, chatter.element);
+	$('body').append(vertSplit.element);
 
 	var gameInfo = null;
 	this.getGameInfo = function() {

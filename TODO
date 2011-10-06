@@ -6,24 +6,32 @@
 	+joined channel
 	+user joined/parted/admined
 	-stop sending clientId_user list when it isn't necessary!
--add a ready, set, go?
-	-show timer
-		-put timer & inspection inside of the infodiv?
--add chat support
++add chat support
 	+gray out our messages until we know they hit the server
 	+reorder messages on client side if necessary
 	+store last 100 messages on the server and feed them to the client upon connect
 	+add gchat style timestamps
 	+resizing smaller is losing fully scrolledness
 	+focus indicator for chat bar
-	-make the chat bar be resizeable & minimizable?
-		-if minimized, add a visual indicator of new messages?
-		-should it also be pop out-able?
-
--if the user types in empty nick or channelname, nothing happens
--make info div pretty, size the area correctly
-
 +BUG: on startup one of the state bars doesn't go away
+
+-add a ready, set, go?
+	-show timer
+		-put timer & inspection inside of the infodiv?
+-save game configuration
+	-cookies for now, accounts later?
+
+-better mechanics for minimizing in Split.js
+	-why can't you drag when minimized?
+
+-make infodiv & chat area hideable
+	+clicking on the chat area should focus the chat bar
+	+pressing tab unconditionally focuses the chat area
+	+pressing twiddle ~ (or tab?) when chat bar is minimized
+		+esc minimizes chat bar?
+	-make info div pretty, size the area correctly
+	-pgup, pgdown while focused on chatbox
+-if the user types in empty nick or channelname, nothing happens
 
 **** Server side ****
 -if the sole member of a channel hits refresh, we immediately nuck the channel, maybe we could set off a timer to do so instead?

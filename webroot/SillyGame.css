@@ -5,12 +5,8 @@ body {
 
 .info {
 	border-bottom: 1px solid black;
-	height: 25%;
-	width: 75%;
 }
 
 .gameArea {
-	height: 75%;
-	width: 75%;
 	overflow-y: auto;
 }

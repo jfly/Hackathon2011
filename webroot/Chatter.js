@@ -9,13 +9,26 @@ Chatter.Chatter = function(gameMaster) {
 	messageArea.addClass('messageArea');
 	var chatBox = $('<textarea/>');
 	chatBox.addClass('chatBox');
-	var totalChatArea = $('<div/>');
-	totalChatArea.addClass('chatArea');
+	chatBox.keydown(function(e) {
+		if(e.which == 27) { //escape
+			that.element.parent.setRightElementVisible(false);
+		}
+	});
+	chatBox.focus(function(e) {
+		if(!visible) {
+			e.preventDefault();
+			that.element.parent.setRightElementVisible(true);
+		}
+	});
+	var chatArea = $('<div/>');
+	chatArea.addClass('chatArea');
+
+	chatArea.click(function(e) {
+		that.element.parent.setRightElementVisible(true);
+	});
 	
-	totalChatArea.append(messageArea);
-	totalChatArea.append(chatBox);
-	$('body').append(totalChatArea);
-	chatBox.focus();
+	chatArea.append(messageArea);
+	chatArea.append(chatBox);
 	var messageId = 0;
 	chatBox.keypress(function(e) {
 		if(e.which == 13 && !e.shiftKey) {
@@ -56,9 +69,6 @@ Chatter.Chatter = function(gameMaster) {
 			messageArea.scrollTop(messageArea[0].scrollHeight);
 		}
 	}
-	$(window).resize(function(e) {
-		maybeFullyScroll();
-	});
 
 	var lastMessageDiv = null;
 	function maybeShowTimestamp() {
@@ -151,13 +161,31 @@ Chatter.Chatter = function(gameMaster) {
 		unconfirmedMessages = {};
 	};
 
-	$('body').keypress(function(e) {
-		if(e.which == 96) { // twiddle (~) key
-			chatBox.focus();
+	$('body').keydown(function(e) {
+		if(e.which == 192 || e.which == 9) { // twiddle (~) or tab key
 			e.preventDefault();
+			if(chatBox.is(":focus")) {
+				return;
+			}
+			chatBox.focus();
 		}
 	});
 
+	chatArea.setSize = function(width, height) {
+		chatArea.width(width);
+		chatArea.height(height);
+		maybeFullyScroll();
+	};
+	var visible = true;
+	chatArea.setVisible = function(visible_) {
+		visible = visible_;
+		if(visible) {
+			chatBox.focus();
+		} else {
+			chatBox.blur();
+		}
+	};
+	this.element = chatArea;
 	var that = this;
 };
 

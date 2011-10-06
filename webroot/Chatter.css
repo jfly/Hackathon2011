@@ -1,6 +1,6 @@
 .messageArea {
-	height: 90%;
 	width: 100%;
+	height: 90%;
 	border-bottom: 1px solid black;
 	word-wrap: break-word;
 	overflow-y: auto;
@@ -41,19 +41,14 @@ span.nick {
 }
 
 .chatBox {
-	padding: 5px;
-	height: 10%;
 	width: 100%;
+	height: 10%;
+	padding: 5px;
 	resize: none;
 	border: none;
 	font-family: sans-serif;
 }
 
 .chatArea {
-	position: absolute;
-	width: 25%;
-	height: 100%;
 	border-left: 1px solid black;
-	top: 0;
-	right: 0;
 }

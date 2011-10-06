@@ -44,7 +44,14 @@
 							button.buttonValue = buttonValue;
 							button.text(buttonValue);
 						}
-						button.mousedown(buttonClicked.bind(null, i, j));
+						var mousedown = (function(i, j) {
+							return function(e) {
+								// Cancel selecting text
+								e.preventDefault();
+								buttonClicked(i, j);
+							};
+						})(i, j);
+						button.mousedown(mousedown);
 					}
 				}
 				lastButtonValue--;
