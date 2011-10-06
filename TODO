@@ -58,3 +58,12 @@ SocketNamespace.<anonymous> (http://tnoodle.tk:8001/nowjs/now.js:378:15)
 {anonymous}()@SocketNamespace.$emit (http://tnoodle.tk:8001/socket.io/socket.io.js:632:15)
 SocketNamespace.onPacket (http://tnoodle.tk:8001/socket.io/socket.io.js:2170:20)
 Socket.onPacket (http://tnoodle.tk:8001/socket.io/socket.io.js:1860:30)
+
+
+**** twisty.js ****
++allow rotations during inspection
++detect solved even if the cube is in a different orientation
++resize appropriately
+-multiple cube instances
+-get/set state
+-black cartoony borders

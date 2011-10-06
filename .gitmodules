@@ -1,0 +1,3 @@
+[submodule "deps/twisty.js"]
+	path = deps/twisty.js
+	url = git@github.com:jfly/twisty.js.git
