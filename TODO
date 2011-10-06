@@ -21,12 +21,13 @@
 		+esc minimizes chat bar?
 	+pgup, pgdown while focused on chatbox
 +BUG: "sent at" message doesn't scroll?
++misc chat improvments
+	+consecutive chats from the same person shouldn't cause a new "Nick:" prefix
+	+add some spacing between chat messages
 
 -add a ready, set, go?
 	-show timer
 		-put timer & inspection inside of the infodiv?
--consecutive chats from the same person shouldn't cause a new "Nick:" prefix
--add some spacing between chat messages
 
 -save game configuration
 	-cookies for now, accounts later?

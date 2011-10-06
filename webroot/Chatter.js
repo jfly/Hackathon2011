@@ -77,15 +77,15 @@ Chatter.Chatter = function(gameMaster) {
 		}
 	}
 
-	var lastMessageDiv = null;
+	var lastConfirmedMessage = null;
 	function maybeShowTimestamp() {
-		if(!lastMessageDiv) {
+		if(!lastConfirmedMessage) {
 			return;
 		}
-		var secondsSinceLastMessage = (new Date().getTime() - lastMessageDiv.timestamp)/1000;
+		var secondsSinceLastMessage = (new Date().getTime() - lastConfirmedMessage.timestamp)/1000;
 		if(secondsSinceLastMessage > SHOW_TIMESTAMP_DELAY_SECONDS) {
-			lastMessageDiv.setTimestampVisible(true);
-			lastMessageDiv = null;
+			lastConfirmedMessage.div.setTimestampVisible(true);
+			lastConfirmedMessage = null;
 			maybeFullyScroll();
 		}
 		setTimeout(maybeShowTimestamp, 1000);
@@ -104,12 +104,18 @@ Chatter.Chatter = function(gameMaster) {
 			message.div = createMessageDiv(message);
 			messageDiv = message.div;
 		}
+		message.timestamp = new Date().getTime();
 
 		messageDiv.setConfirmed(true);
+		if(lastConfirmedMessage) {
+			if(lastConfirmedMessage.nick == message.nick) {
+				messageDiv.setNickVisible(false);
+			}
+		}
 		appendMessageDiv(messageDiv);
-		lastMessageDiv = messageDiv;
+		lastConfirmedMessage = message;
 		maybeShowTimestamp();
-		assert(lastMessageDiv.timestamp);
+		assert(lastConfirmedMessage.timestamp);
 	}
 	function createMessageDiv(message) {
 		var messageDiv = $('<div/>');
@@ -135,8 +141,15 @@ Chatter.Chatter = function(gameMaster) {
 			newlinedMessageDiv.append($('<br>'));
 		}
 
-		messageDiv.timestamp = new Date().getTime();
-		
+		messageDiv.setNickVisible = function(visible) {
+			if(visible) {
+				newlinedMessageDiv.css('text-indent', '');
+				nickSpan.show();
+			} else {
+				newlinedMessageDiv.css('text-indent', '0px');
+				nickSpan.hide();
+			}
+		};
 		messageDiv.setConfirmed = function(confirmed) {
 			if(confirmed) {
 				newlinedMessageDiv.removeClass('unconfirmedMessage');
@@ -164,7 +177,7 @@ Chatter.Chatter = function(gameMaster) {
 	};
 
 	this.clear = function() {
-		lastMessageDiv = null;
+		lastConfirmedMessage = null;
 		messageArea.empty();
 		unconfirmedMessages = {};
 	};
