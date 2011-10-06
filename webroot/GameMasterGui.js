@@ -1,12 +1,13 @@
 var GameMasterGui = {};
 
-DEFAULT_INSPECTION = 15;
 (function() {
+
+	var DEFAULT_INSPECTION = 15;
+	var NO_READY_SET_GO_IF_INSPECTION = false;
 
 	GameMasterGui.GameMasterGui = function(gameMaster) {
 		var gamesDiv;
 
-		var inspectionCountdownDiv;
 		var infoDiv;
 		var gameDropdown;
 		var scrambleButton;
@@ -14,8 +15,6 @@ DEFAULT_INSPECTION = 15;
 		gamesDiv = document.createElement('div');
 		$(gamesDiv).css('position', 'relative');
 		$(gamesDiv).addClass('gamesDiv');
-		inspectionCountdownDiv = document.createElement('div');
-		inspectionCountdownDiv.id = 'inspection';
 		infoDiv = document.createElement('div');
 		$(infoDiv).addClass('info');
 
@@ -125,9 +124,12 @@ DEFAULT_INSPECTION = 15;
 				} else {
 					var containerDiv = document.createElement('span');
 					$(containerDiv).css('position', 'absolute');
-					var nameDiv = document.createElement('div');
+					var nameDiv = document.createElement('span');
+					var timeDiv = document.createElement('span');
+					$(timeDiv).css('margin-left', 5);
 					containerDiv.appendChild(nameDiv);
-					gameBoard = { div: containerDiv, nameDiv: nameDiv };
+					containerDiv.appendChild(timeDiv);
+					gameBoard = { div: containerDiv, nameDiv: nameDiv, timeDiv: timeDiv };
 					gameBoards[clientId] = gameBoard;
 					gamesDiv.appendChild(containerDiv);
 				}
@@ -314,30 +316,101 @@ DEFAULT_INSPECTION = 15;
 			gameMaster.sendMoveState(moveState, startstamp);
 		}
 
-		var inspectionStart;
+		var readySetGoDiv = $(document.createElement('div'));
+		readySetGoDiv.addClass("readySetGo");
+		readySetGoDiv.hide();
+		$(gamesDiv).append(readySetGoDiv);
+
+		var readySetGoStart = null;
+		function startReadySetGo() {
+			if(NO_READY_SET_GO_IF_INSPECTION) {
+				var gameInfo = gameMaster.getGameInfo();
+				if(gameInfo.inspectionSeconds > 0) {
+					startInspection();
+					return;
+				}
+			}
+			readySetGoStart = new Date().getTime();
+			refreshReadySetGo();
+		}
+		function refreshReadySetGo() {
+			var halfSecondsUsed = Math.floor((new Date().getTime() - readySetGoStart)/500);
+			var timeRemaining = 3 - halfSecondsUsed;
+			var readySetGo = [ '', 'Inspect', 'Set', 'Ready' ];
+			var gameInfo = gameMaster.getGameInfo();
+			if(gameInfo.inspectionSeconds == 0) {
+				readySetGo[1] = 'Go!';
+			}
+			var phrase = readySetGo[timeRemaining];
+			var phraseHeightToWidth = 1.5 / phrase.length;
+			var fontSizeContrainedByWidth = $(readySetGoDiv).width() * phraseHeightToWidth;
+			var fontSize = Math.min(fontSizeContrainedByWidth, readySetGoDiv.height());
+			readySetGoDiv.text(phrase);
+			readySetGoDiv.css('font-size', fontSize);
+			readySetGoDiv.css('padding-top', ($(readySetGoDiv).height() - fontSize)/2);
+			readySetGoDiv.show();
+			
+			if(timeRemaining > 0) {
+				setTimeout(refreshReadySetGo, 100);
+			} else {
+				readySetGoDiv.hide();
+				startInspection();
+			}
+		}
+
+		var inspectionStart = null;
 		function startInspection() {
+			startstamp = null;
 			inspectionStart = new Date().getTime();
-			refreshInspection();
+			for(var clientId in gameBoards) {
+				var gameBoard = gameBoards[clientId];
+				gameBoard.solveTime = null;
+			}
+			refreshTimers();
 		}
 		function getMyBoard() {
 			return gameBoards[gameMaster.getMyself().clientId].gameInstance;
 		}
-		var startstamp = 0;
-		function refreshInspection() {
-			$(inspectionCountdownDiv).show();
+		var startstamp = null;
+		function refreshTimers() {
+			if(!inspectionStart && !startstamp) {
+				return;
+			}
 			var secondsUsed = Math.floor((new Date().getTime() - inspectionStart)/1000);
 			var gameInfo = gameMaster.getGameInfo();
 			var timeRemaining = gameInfo.inspectionSeconds - secondsUsed;
-			$(inspectionCountdownDiv).text(timeRemaining);
-			var topCoord = $(window).height()/2 - $(inspectionCountdownDiv).height()/2;
-			var leftCoord = $(window).width()/2 - $(inspectionCountdownDiv).width()/2;
-			$(inspectionCountdownDiv).offset({top:topCoord, left:leftCoord});
-			if (timeRemaining > 0) {
-				setTimeout(refreshInspection, 100);
+
+			var timerText = null;
+			var delayUntilNextRefresh = null;
+			var inspecting = (timeRemaining > 0);
+			if(inspecting) {
+				timerText = timeRemaining;
+				delayUntilNextRefresh = 100;
 			} else {
-				startstamp = new Date().getTime();
-				$(inspectionCountdownDiv).hide();
-				getMyBoard().endInspection();
+				var now = new Date().getTime();
+				if(!startstamp) {
+					startstamp = now;
+					getMyBoard().endInspection();
+					inspectionStart = null;
+				}
+				timerText = ((now-startstamp)/1000).toFixed(2);
+			}
+
+			for(var clientId in gameBoards) {
+				var gameBoard = gameBoards[clientId];
+				if(!gameBoard.solveTime && !delayUntilNextRefresh) {
+					delayUntilNextRefresh = 10;
+				}
+				var text = gameBoard.solveTime ? gameBoard.solveTime.toFixed(2) + " seconds" : timerText;
+				$(gameBoard.timeDiv).text(text);
+				if(inspecting) {
+					$(gameBoard.timeDiv).css('color', 'red');
+				} else {
+					$(gameBoard.timeDiv).css('color', '');
+				}
+			}
+			if(delayUntilNextRefresh) {
+				setTimeout(refreshTimers, delayUntilNextRefresh);
 			}
 		}
 
@@ -362,7 +435,7 @@ DEFAULT_INSPECTION = 15;
 			for(var clientId in gameBoards) {
 				gameBoards[clientId].gameInstance.setState(randomState);
 			}
-			startInspection();
+			startReadySetGo();
 		};
 
 		this.handleMoveState = function(user, moveState, timestamp, startstamp) {
@@ -379,18 +452,15 @@ DEFAULT_INSPECTION = 15;
 			}
 			if(gameInstance.isFinished()) {
 				var totalTime = (timestamp - startstamp)/1000;
-				$(gameBoard.nameDiv).text(user.nick + " " + totalTime.toFixed(2) + " seconds");
+				gameBoard.solveTime = totalTime;
 			}
 		};
 
 		var boardAndInfoDiv = $('<div/>');
 		boardAndInfoDiv.append($(infoDiv));
 		boardAndInfoDiv.append($(gamesDiv));
-		boardAndInfoDiv.append($(inspectionCountdownDiv));
 		boardAndInfoDiv.append(disabledDiv);
 		boardAndInfoDiv.setSize = function(width, height) {
-			// TODO !!!
-			//console.log(width + " " + height);
 			$(infoDiv).width(width);
 			var infoDivHeight = $(infoDiv).height();
 

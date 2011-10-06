@@ -25,10 +25,8 @@
 	+consecutive chats from the same person shouldn't cause a new "Nick:" prefix
 	+add some spacing between chat messages
 	+"me: " instead of "Nick: " for your own chats
-
--add a ready, set, go?
-	-show timer
-		-put timer & inspection inside of the infodiv?
++add a ready, set, go?
+	+show timer on each board
 
 -save game configuration
 	-cookies for now, accounts later?
@@ -43,23 +41,7 @@
 
 **** Assertions ****
 
-Uncaught TypeError: Cannot read property 'timestamp' of null
-
-File: http://tnoodle.tk:8001/Chatter.js:111
-   109:    		lastMessageDiv = messageDiv;
-   110:    		maybeShowTimestamp();
->111:    		assert(lastMessageDiv.timestamp);
-   112:    	}
-   113:    	function createMessageDiv(message) {
-
-onerror()@http://tnoodle.tk:8001/assert.js:15:20
-
-
-
-
-
-
-
+* This is probably just a nowjs reconnecting issue.
 Assertion failure!
 16745030801217288281 doesn't appear in 
 
