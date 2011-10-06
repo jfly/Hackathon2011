@@ -36,7 +36,6 @@
 	-if the user types in empty nick or channelname, nothing happens
 
 **** Server side ****
--if the sole member of a channel hits refresh, we immediately nuck the channel, maybe we could set off a timer to do so instead?
 
 
 **** Assertions ****

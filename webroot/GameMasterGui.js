@@ -333,10 +333,10 @@ var GameMasterGui = {};
 			readySetGoStart = new Date().getTime();
 			refreshReadySetGo();
 		}
+		var readySetGo = [ '', 'Inspect', 'Set', 'Ready' ];
 		function refreshReadySetGo() {
 			var halfSecondsUsed = Math.floor((new Date().getTime() - readySetGoStart)/500);
-			var timeRemaining = 3 - halfSecondsUsed;
-			var readySetGo = [ '', 'Inspect', 'Set', 'Ready' ];
+			var timeRemaining = (readySetGo.length - 1) - halfSecondsUsed;
 			var gameInfo = gameMaster.getGameInfo();
 			if(gameInfo.inspectionSeconds == 0) {
 				readySetGo[1] = 'Go!';
