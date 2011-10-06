@@ -7,8 +7,8 @@ GameMaster.getGames = function() {
 	return games;
 };
 GameMaster.addGame = function(game) {
-	assert(!(game.gameName in games));
-	games[game.gameName] = game;
+	assert(!(game.getGameName() in games));
+	games[game.getGameName()] = game;
 };
 GameMaster.GameMaster = function() {
 	var gui = new GameMasterGui.GameMasterGui(this);

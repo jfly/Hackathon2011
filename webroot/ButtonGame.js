@@ -1,13 +1,13 @@
 (function() {
 
+	var css = $('<link/>');
+	css.attr({
+		rel: "stylesheet",
+		type: "text/css",
+		href: "ButtonGame.css"
+	});
+	$('head').append(css);
 	function ButtonGameMaker(WIDTH, HEIGHT) {
-		var css = $('<link/>');
-		css.attr({
-			rel: "stylesheet",
-			type: "text/css",
-			href: "ButtonGame.css"
-		});
-		$('head').append(css);
 
 		var PADDING = 5;
 
@@ -124,9 +124,6 @@
 			this.getDiv = function() {
 				return gameDiv[0];
 			};
-			this.getName = function() {
-				return ButtonGame.gameName;
-			};
 
 			var gameDiv = $(document.createElement('div'));
 			gameDiv.addClass('ButtonGame');
@@ -136,11 +133,11 @@
 					return;
 				}
 				var move = [ i, j ];
-				var moveState = { move: move, oldState: that.getState() };
+				var oldState = that.getState();
 				if(that.isLegalMove(move)) {
 					that.applyMove(move);
 					if(moveCallback) {
-						moveCallback(moveState);
+						moveCallback(that, move, oldState);
 					}
 				}
 
@@ -164,7 +161,7 @@
 		ButtonGame.getMinimumSize = function() {
 			return { width: WIDTH*30, height: HEIGHT*30 };
 		};
-		ButtonGame.gameName = WIDTH + "x" + HEIGHT + "ButtonGame";
+		ButtonGame.getGameName = function() { return WIDTH + "x" + HEIGHT + "ButtonGame"; };
 		return ButtonGame;
 	}
 

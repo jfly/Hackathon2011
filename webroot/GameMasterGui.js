@@ -4,6 +4,14 @@ var GameMasterGui = {};
 
 	var DEFAULT_INSPECTION = 15;
 	var NO_READY_SET_GO_IF_INSPECTION = false;
+	var DEFAULT_GAME = null;
+
+	/*
+	// These following are just for development!
+	var DEFAULT_GAME = 'ClickGame';
+	var NO_READY_SET_GO_IF_INSPECTION = true;
+	var DEFAULT_INSPECTION = 2;
+	*/
 
 	GameMasterGui.GameMasterGui = function(gameMaster) {
 		var gamesDiv;
@@ -40,6 +48,10 @@ var GameMasterGui = {};
 			option.value = gameName;
 			option.appendChild(document.createTextNode(gameName));
 			gameDropdown.appendChild(option);
+		}
+		if(DEFAULT_GAME) {
+			// TODO - this is really just a hack for development
+			gameDropdown.value = DEFAULT_GAME;
 		}
 
 		$(gameDropdown).change(function(e) {
@@ -106,7 +118,7 @@ var GameMasterGui = {};
 					// who has left, so we can delete it.
 					gamesDiv.removeChild(gameBoard.div);
 					delete gameBoards[clientId];
-				} else if(gameBoard.gameInstance.getName() != gameInfo.gameName) {
+				} else if(gameBoard.gameInstance.constructor.getGameName() != gameInfo.gameName) {
 					// This game instance is the wrong type of game
 					$(gameBoards[clientId].gameDiv).remove();
 					gameBoards[clientId].gameInstance = null;
@@ -119,7 +131,7 @@ var GameMasterGui = {};
 				if(clientId in gameBoards) {
 					gameBoard = gameBoards[clientId];
 					if(gameBoards[clientId].gameInstance) {
-						assert(gameBoards[clientId].gameInstance.getName() == gameInfo.gameName);
+						assert(gameBoards[clientId].gameInstance.constructor.getGameName() == gameInfo.gameName);
 					}
 				} else {
 					var containerDiv = document.createElement('span');
@@ -312,7 +324,8 @@ var GameMasterGui = {};
 			}
 			assert(boardIndex == clientIds.length);
 		}
-		function moveApplied(moveState) {
+		function moveApplied(game, move, oldState) {
+			var moveState = { move: move, oldState: oldState};
 			gameMaster.sendMoveState(moveState, startstamp);
 		}
 
@@ -333,13 +346,20 @@ var GameMasterGui = {};
 			readySetGoStart = new Date().getTime();
 			refreshReadySetGo();
 		}
-		var readySetGo = [ '', 'Inspect', 'Set', 'Ready' ];
+		var readySetGo = [ '', '???', 'Set', 'Ready' ];
 		function refreshReadySetGo() {
 			var halfSecondsUsed = Math.floor((new Date().getTime() - readySetGoStart)/500);
 			var timeRemaining = (readySetGo.length - 1) - halfSecondsUsed;
+			if(timeRemaining <= 0) {
+				readySetGoDiv.hide();
+				startInspection();
+				return;
+			}
 			var gameInfo = gameMaster.getGameInfo();
 			if(gameInfo.inspectionSeconds == 0) {
 				readySetGo[1] = 'Go!';
+			} else {
+				readySetGo[1] = 'Inspect';
 			}
 			var phrase = readySetGo[timeRemaining];
 			var phraseHeightToWidth = 1.5 / phrase.length;
@@ -350,12 +370,7 @@ var GameMasterGui = {};
 			readySetGoDiv.css('padding-top', ($(readySetGoDiv).height() - fontSize)/2);
 			readySetGoDiv.show();
 			
-			if(timeRemaining > 0) {
-				setTimeout(refreshReadySetGo, 100);
-			} else {
-				readySetGoDiv.hide();
-				startInspection();
-			}
+			setTimeout(refreshReadySetGo, 100);
 		}
 
 		var inspectionStart = null;
