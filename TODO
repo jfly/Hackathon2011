@@ -24,6 +24,7 @@
 +misc chat improvments
 	+consecutive chats from the same person shouldn't cause a new "Nick:" prefix
 	+add some spacing between chat messages
+	+"me: " instead of "Nick: " for your own chats
 
 -add a ready, set, go?
 	-show timer

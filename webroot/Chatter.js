@@ -129,8 +129,12 @@ Chatter.Chatter = function(gameMaster) {
 
 		var controlMessage = true;
 		if(message.nick) {
+			var nick = message.nick;
+			if(message.nick == gameMaster.getMyNick()) {
+				nick = 'me';
+			}
 			controlMessage = false;
-			nickSpan.text(message.nick + ": ");
+			nickSpan.text(nick + ": ");
 		}
 		if(controlMessage) {
 			newlinedMessageDiv.addClass('controlMessage');
