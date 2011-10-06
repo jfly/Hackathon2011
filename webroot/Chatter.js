@@ -166,7 +166,7 @@ Chatter.Chatter = function(gameMaster) {
 		messageDiv.setConfirmed(false);
 		messageDiv.setTimestampVisible = function(visible) {
 			if(visible) {
-				dateDiv.text('Sent at ' + $.format.date(new Date(messageDiv.timestamp).toString(), 'hh:mm a on ddd'));
+				dateDiv.text('Sent at ' + $.format.date(new Date(message.timestamp).toString(), 'hh:mm a on ddd'));
 				dateDiv.show();
 			} else {
 				dateDiv.hide();
