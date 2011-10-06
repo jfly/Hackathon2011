@@ -1,5 +1,5 @@
 **** Client side ****
--deterministic ordering of channel members? age or nick?
++deterministic ordering of channel members? age or nick?
 	+sizing of boards
 		+visually indicate self, and always place it on top?
 +add control messages to chat
@@ -14,24 +14,64 @@
 	+resizing smaller is losing fully scrolledness
 	+focus indicator for chat bar
 +BUG: on startup one of the state bars doesn't go away
-
--add a ready, set, go?
-	-show timer
-		-put timer & inspection inside of the infodiv?
--save game configuration
-	-cookies for now, accounts later?
-
--better mechanics for minimizing in Split.js
-	-why can't you drag when minimized?
-
--make infodiv & chat area hideable
++make chat area hideable
 	+clicking on the chat area should focus the chat bar
 	+pressing tab unconditionally focuses the chat area
 	+pressing twiddle ~ (or tab?) when chat bar is minimized
 		+esc minimizes chat bar?
 	+pgup, pgdown while focused on chatbox
-	-make info div pretty, size the area correctly
--if the user types in empty nick or channelname, nothing happens
++BUG: "sent at" message doesn't scroll?
+
+-add a ready, set, go?
+	-show timer
+		-put timer & inspection inside of the infodiv?
+-consecutive chats from the same person shouldn't cause a new "Nick:" prefix
+-add some spacing between chat messages
+
+-save game configuration
+	-cookies for now, accounts later?
+-better mechanics for minimizing in Split.js
+	-why can't you drag when minimized?
+-make info div pretty
+	-if the user types in empty nick or channelname, nothing happens
 
 **** Server side ****
 -if the sole member of a channel hits refresh, we immediately nuck the channel, maybe we could set off a timer to do so instead?
+
+
+**** Assertions ****
+
+Uncaught TypeError: Cannot read property 'timestamp' of null
+
+File: http://tnoodle.tk:8001/Chatter.js:111
+   109:    		lastMessageDiv = messageDiv;
+   110:    		maybeShowTimestamp();
+>111:    		assert(lastMessageDiv.timestamp);
+   112:    	}
+   113:    	function createMessageDiv(message) {
+
+onerror()@http://tnoodle.tk:8001/assert.js:15:20
+
+
+
+
+
+
+
+Assertion failure!
+16745030801217288281 doesn't appear in 
+
+File: http://tnoodle.tk:8001/GameMasterGui.js:370
+   368:    		this.handleMoveState = function(user, moveState, timestamp, startstamp) {
+   369:    			var gameBoard = gameBoards[user.clientId];
+>370:    			assert(gameBoard, user.clientId + " doesn't appear in " + Object.keys(gameBoards));
+   371:    			var gameInstance = gameBoard.gameInstance;
+   372:    			assert(gameInstance);
+
+[object Object].handleMoveState (http://tnoodle.tk:8001/GameMasterGui.js:370:4)
+handleMoveState()@http://tnoodle.tk:8001/GameMaster.js:117:7
+Object.remoteCall (http://tnoodle.tk:8001/nowjs/now.js:340:14)
+SocketNamespace.<anonymous> (http://tnoodle.tk:8001/nowjs/now.js:378:15)
+{anonymous}()@SocketNamespace.$emit (http://tnoodle.tk:8001/socket.io/socket.io.js:632:15)
+SocketNamespace.onPacket (http://tnoodle.tk:8001/socket.io/socket.io.js:2170:20)
+Socket.onPacket (http://tnoodle.tk:8001/socket.io/socket.io.js:1860:30)

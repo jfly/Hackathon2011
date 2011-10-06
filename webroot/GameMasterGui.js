@@ -43,7 +43,7 @@ DEFAULT_INSPECTION = 15;
 			gameDropdown.appendChild(option);
 		}
 
-		gameDropdown.addEventListener('change', function(e) {
+		$(gameDropdown).change(function(e) {
 			gameMaster.sendGameInfo();
 		});
 		infoDiv.appendChild(gameDropdown);
@@ -60,7 +60,7 @@ DEFAULT_INSPECTION = 15;
 		scrambleButton = document.createElement('input');
 		scrambleButton.value = 'Scramble!';
 		scrambleButton.type = 'button';
-		scrambleButton.addEventListener('click', function(e) {
+		$(scrambleButton).click(function(e) {
 			// TODO - what if they click scramble before we've generated boards?
 			var scramble = gameMaster.getGame().generateRandomState();
 			gameMaster.sendRandomState(scramble);

@@ -20,6 +20,8 @@
 
 				lastButtonValue = -1;
 				var gameTable = document.createElement('table');
+				// Crazy ass firefox defaults to 'hide' for empty-cells
+				$(gameTable).css('empty-cells', 'show');
 				gameDiv.empty();
 				gameDiv.append($(gameTable));
 				buttons = [];
@@ -79,13 +81,6 @@
 				assert(size.height >= minimumSize.height);
 				resize();
 			}
-			/*this.setHeight = function(height) {
-				var preferredSize = ButtonGame.getPreferredSize();
-				size = {};
-				size.height = height;
-				size.width = (preferredSize.width/preferredSize.height)*height;
-				that.setState(currentState);
-			};*/ //TODO - should we have this method?
 			this.getState = function() {
 				var state = [];
 				for(var i = 0; i < buttons.length; i++) {

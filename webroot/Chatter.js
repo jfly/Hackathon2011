@@ -86,6 +86,7 @@ Chatter.Chatter = function(gameMaster) {
 		if(secondsSinceLastMessage > SHOW_TIMESTAMP_DELAY_SECONDS) {
 			lastMessageDiv.setTimestampVisible(true);
 			lastMessageDiv = null;
+			maybeFullyScroll();
 		}
 		setTimeout(maybeShowTimestamp, 1000);
 	}

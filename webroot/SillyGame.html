@@ -3,6 +3,19 @@
 
 		<title>Hackathon2011</title>
 
+		<script type='text/javascript'>
+			if(!Object.keys) {
+				Object.keys = function(o) {
+					var keys = [];
+					for(var key in o) {
+						if(o.hasOwnProperty(key)) {
+							keys.push(key);
+						}
+					}
+					return keys;
+				};
+			}
+		</script>
 		<script type='text/javascript' src='stacktrace.js'></script>
 		<script type='text/javascript' src='assert.js'></script>
 		<script type='text/javascript' src='/nowjs/now.js'></script>
