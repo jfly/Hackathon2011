@@ -3,6 +3,7 @@ var Chatter = {};
 (function() {
 
 var SHOW_TIMESTAMP_DELAY_SECONDS = 60;
+var SCROLL_AMOUNT = 40;
 
 Chatter.Chatter = function(gameMaster) {
 	var messageArea = $('<div/>');
@@ -12,6 +13,12 @@ Chatter.Chatter = function(gameMaster) {
 	chatBox.keydown(function(e) {
 		if(e.which == 27) { //escape
 			that.element.parent.setRightElementVisible(false);
+		} else if(e.which == 33) {
+			messageArea.scrollTop(messageArea.scrollTop() - SCROLL_AMOUNT);
+			e.preventDefault();
+		} else if(e.which == 34) {
+			messageArea.scrollTop(messageArea.scrollTop() + SCROLL_AMOUNT);
+			e.preventDefault();
 		}
 	});
 	chatBox.focus(function(e) {

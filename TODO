@@ -29,8 +29,8 @@
 	+pressing tab unconditionally focuses the chat area
 	+pressing twiddle ~ (or tab?) when chat bar is minimized
 		+esc minimizes chat bar?
+	+pgup, pgdown while focused on chatbox
 	-make info div pretty, size the area correctly
-	-pgup, pgdown while focused on chatbox
 -if the user types in empty nick or channelname, nothing happens
 
 **** Server side ****
