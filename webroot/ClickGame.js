@@ -21,15 +21,21 @@
 	var MAX_SCRAMBLE = 100;
 
 	var ClickGame = function(moveCallback) {
-		var solving = null;
 		var buttonValue = null;
 		this.setState = function(scramble) {
-			solving = false;
 			buttonValue = scramble;
 			gameButton.val(buttonValue);
 		};
+		var inspecting = false;
+		this.startInspection = function() {
+			inspecting = true;
+		};
 		this.endInspection = function() {
-			solving = true;
+			inspecting = false;
+		};
+		var playable = false;
+		this.setPlayable = function(playable_) {
+			playable = playable_;
 		};
 		this.applyMove = function(move) {
 			// Note that we don't call moveCallback from inside of applyMove.
@@ -69,7 +75,7 @@
 		gameButton.css('height', '100%');
 		gameDiv.append(gameButton);
 		gameButton.click(function() {
-			if(!solving) {
+			if(!playable || inspecting) {
 				return;
 			}
 			var move = buttonValue;

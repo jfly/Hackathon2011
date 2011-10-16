@@ -6,12 +6,12 @@ var GameMasterGui = {};
 	var NO_READY_SET_GO_IF_INSPECTION = false;
 	var DEFAULT_GAME = null;
 
-	/*
+	
 	// These following are just for development!
-	var DEFAULT_GAME = 'ClickGame';
-	var NO_READY_SET_GO_IF_INSPECTION = true;
-	var DEFAULT_INSPECTION = 2;
-	*/
+	//var DEFAULT_GAME = '3x3x3';
+	//var NO_READY_SET_GO_IF_INSPECTION = true;
+	//var DEFAULT_INSPECTION = 2;
+
 
 	GameMasterGui.GameMasterGui = function(gameMaster) {
 		var gamesDiv;
@@ -121,7 +121,10 @@ var GameMasterGui = {};
 				} else if(gameBoard.gameInstance.constructor.getGameName() != gameInfo.gameName) {
 					// This game instance is the wrong type of game
 					$(gameBoards[clientId].gameDiv).remove();
-					gameBoards[clientId].gameInstance = null;
+					
+					// TODO - this is worthy of a big comment
+					gameBoards[clientId].gameInstance.setPlayable(false);
+					delete gameBoards[clientId].gameInstance;
 				}
 			}
 			// creating new games
@@ -146,7 +149,14 @@ var GameMasterGui = {};
 					gamesDiv.appendChild(containerDiv);
 				}
 				if(!gameBoard.gameInstance) {
-					var gameInstance = new game(moveApplied);
+					// TODO get rid of this gameStateChangedCallback?
+					// need some way of detecting when a game with animation
+					// is considered finished
+					var gameInstance = new game(moveApplied, that.gameStateChanged.bind(null, clientId));
+					var myClientId = gameMaster.getMyself().clientId;
+					if(clientId == myClientId) {
+						gameInstance.setPlayable(true);
+					}
 					gameBoard.gameInstance = gameInstance;
 					gameBoard.gameDiv = gameInstance.getDiv();
 					gameBoard.div.appendChild(gameBoard.gameDiv);
@@ -326,6 +336,7 @@ var GameMasterGui = {};
 		}
 		function moveApplied(game, move, oldState) {
 			var moveState = { move: move, oldState: oldState};
+			console.log("SENDING " + this + " " + moveState);
 			gameMaster.sendMoveState(moveState, startstamp);
 		}
 
@@ -381,6 +392,10 @@ var GameMasterGui = {};
 				var gameBoard = gameBoards[clientId];
 				gameBoard.solveTime = null;
 			}
+			// TODO - is this actually the right place to call startInspection(),
+			// we don't want them to do any moves while we're saying "ready, set, go".
+			var myBoard = gameBoards[gameMaster.getMyClientId()];
+			myBoard.gameInstance.startInspection();
 			refreshTimers();
 		}
 		function getMyBoard() {
@@ -430,6 +445,15 @@ var GameMasterGui = {};
 		}
 
 		this.handleGameInfo = function() {
+			// We reset the timers if the game changes.
+			inspectionStart = null;
+			startstamp = null;
+			for(var clientId in gameBoards) {
+				var gameBoard = gameBoards[clientId];
+				gameBoard.solveTime = null;
+				$(gameBoard.timeDiv).text('');
+			}
+
 			refresh();
 		};
 		this.connectionChanged = function() {
@@ -453,19 +477,58 @@ var GameMasterGui = {};
 			startReadySetGo();
 		};
 
+		// TODO - is this provided somewhere by javascript or jquery?
+		function deepEquals(ar1, ar2) {
+			if(typeof(ar1) != typeof(ar2)) {
+				return false;
+			}
+			if(typeof(ar1) != "object") {
+				return ar1 == ar2;
+			}
+			// TODO typeof(null) == "object", but Object.keys(null) blows up
+			if(ar1 == null || ar2 == null) {
+				return ar1 == ar2;
+			}
+			var k1 = Object.keys(ar1);
+			var k2 = Object.keys(ar2);
+			if(k1.length != k2.length) {
+				return false;
+			}
+			for(var key in k1) {
+				if(!deepEquals(ar1[key], ar2[key])) {
+					return false;
+				}
+			}
+			return true;
+		}
 		this.handleMoveState = function(user, moveState, timestamp, startstamp) {
 			var gameBoard = gameBoards[user.clientId];
 			assert(gameBoard, user.clientId + " doesn't appear in " + Object.keys(gameBoards));
 			var gameInstance = gameBoard.gameInstance;
 			assert(gameInstance);
 			if(user.clientId != gameMaster.getMyself().clientId) {
-				if(gameInstance.getState() != moveState.oldState) {
+				if(!deepEquals(gameInstance.getState(), moveState.oldState)) {
 					gameInstance.setState(moveState.oldState);
 				}
 				assert(gameInstance.isLegalMove(moveState.move));
 				gameInstance.applyMove(moveState.move);
 			}
-			if(gameInstance.isFinished()) {
+			that.gameStateChanged(user.clientId);
+		};
+		this.gameStateChanged = function(clientId) {
+			// TODO - this hack means the timing isn't accurate across clients!
+			var timestamp = new Date().getTime();
+
+			// TODO - deal with games that start out finished?
+
+			// Note that we can't necessarily check if the game is solved
+			// here because isFinished() may not return true until the
+			// animation has completed.
+			// TODO - update comment above!
+			var gameBoard = gameBoards[clientId];
+			assert(gameBoard, clientId + " doesn't appear in " + Object.keys(gameBoards));
+			var gameInstance = gameBoard.gameInstance;
+			if(gameInstance.isFinished() && !gameBoard.solveTime) {
 				var totalTime = (timestamp - startstamp)/1000;
 				gameBoard.solveTime = totalTime;
 			}

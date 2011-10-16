@@ -111,9 +111,16 @@
 				var button = buttons[move[0]][move[1]];
 				return (button.buttonValue == lastButtonValue + 1);
 			};
-			var solving = false;
+			var inspecting = false;
+			this.startInspection = function() {
+				inspecting = true;
+			};
+			var playable = false;
+			this.setPlayable = function(playable_) {
+				playable = playable_;
+			};
 			this.endInspection = function() {
-				solving = true;
+				inspecting = false;
 				for(var i = 0; i < buttons.length; i++) {
 					for(var j = 0; j < buttons[i].length; j++) {
 						var button = buttons[i][j];
@@ -129,7 +136,9 @@
 			gameDiv.addClass('ButtonGame');
 			var that = this;
 			function buttonClicked(i, j) {
-				if(!solving) {
+				if(!playable || inspecting) {
+					// TODO - a more efficient way of doing this would be to
+					// actually remove the listener, but I'm lazy and in a rush
 					return;
 				}
 				var move = [ i, j ];

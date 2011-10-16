@@ -57,6 +57,12 @@ GameMaster.GameMaster = function() {
 		}
 		return myself.nick;
 	};
+	this.getMyClientId = function() {
+		if(!myself) {
+			return null;
+		}
+		return myself.clientId;
+	};
 	this.getChannelName = function() {
 		if(!myself) {
 			return null;
