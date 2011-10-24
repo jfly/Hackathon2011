@@ -152,7 +152,7 @@ GameMaster.GameMaster = function() {
 	};
 
 	this.joinChannel = function(nick_, channelName_) {
-		var desiredNick = nick_ || that.getMyNick() || "Pimp";
+		var desiredNick = nick_ || that.getMyNick() || "Player";
 		var desiredChannelName = channelName_ || that.getChannelName() || "PimpsAtSea";
 		if(desiredNick == that.getMyNick() && desiredChannelName == that.getChannelName()) {
 			StatusBar.setError('joinChannel', null);

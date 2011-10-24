@@ -336,7 +336,6 @@ var GameMasterGui = {};
 		}
 		function moveApplied(game, move, oldState) {
 			var moveState = { move: move, oldState: oldState};
-			console.log("SENDING " + this + " " + moveState);
 			gameMaster.sendMoveState(moveState, startstamp);
 		}
 
