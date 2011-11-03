@@ -63,6 +63,14 @@
 		};
 		function keydown(e) {
 			assert(playable);
+
+			// We don't want to turn the cube
+			// if we're in a textarea or input field.
+			var focusedEl = document.activeElement.nodeName.toLowerCase();
+			var isEditing = focusedEl == 'textarea' || focusedEl == 'input';
+			if(isEditing) {
+				return;
+			}
 			
 			// TODO - get actual move
 			var twisty = twistyScene.getTwisty();
