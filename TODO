@@ -35,6 +35,8 @@
 -make info div pretty
 	-if the user types in empty nick or channelname, nothing happens
 
+-editing name while server info gets set is really annoying
+
 **** Server side ****
 
 
