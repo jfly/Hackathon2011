@@ -509,10 +509,6 @@ var GameMasterGui = {};
 			assert(gameInstance);
 			if(user.clientId != gameMaster.getMyself().clientId) {
 				if(!deepEquals(gameInstance.getState(), moveState.oldState)) {
-					console.log(gameInstance.getState().join(";"));
-					console.log('old state ' + moveState.oldState.join(";"));
-					console.log('new move ' + moveState.move);
-					alert("UH OH");
 					gameInstance.setState(moveState.oldState);
 				}
 				assert(gameInstance.isLegalMove(moveState.move));
