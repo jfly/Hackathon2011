@@ -12,6 +12,7 @@ var GameMasterGui = {};
 	//var NO_READY_SET_GO_IF_INSPECTION = true;
 	//var DEFAULT_INSPECTION = 2;
 
+	// TODO - loading with a scrollbar looks weird
 
 	GameMasterGui.GameMasterGui = function(gameMaster) {
 		var gamesDiv;
@@ -83,6 +84,7 @@ var GameMasterGui = {};
 		disabledDiv.hide();
 
 		var gameBoards = {};
+		this.gameBoards = gameBoards; // This is just for debugging
 		function refresh() {
 			var myself = gameMaster.getMyself();
 			if(!gameMaster.isConnected()) {
@@ -507,9 +509,14 @@ var GameMasterGui = {};
 			assert(gameInstance);
 			if(user.clientId != gameMaster.getMyself().clientId) {
 				if(!deepEquals(gameInstance.getState(), moveState.oldState)) {
+					console.log(gameInstance.getState().join(";"));
+					console.log('old state ' + moveState.oldState.join(";"));
+					console.log('new move ' + moveState.move);
+					alert("UH OH");
 					gameInstance.setState(moveState.oldState);
 				}
 				assert(gameInstance.isLegalMove(moveState.move));
+				console.log(moveState.move);
 				gameInstance.applyMove(moveState.move);
 			}
 			that.gameStateChanged(user.clientId);

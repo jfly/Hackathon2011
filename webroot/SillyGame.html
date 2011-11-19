@@ -44,10 +44,10 @@
 		<script type='text/javascript' src='CubeGame.js'></script>
 
 		<script type='text/javascript'>
+			var gm; // debugging
 			(function() {
 
 			StatusBar.setError('init', 'Connecting...');
-			var gm;
 			now.ready(function() {
 				StatusBar.setError('init', null);
 				// This function can get called multiple times. 

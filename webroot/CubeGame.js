@@ -53,7 +53,7 @@
 				scramble = [];
 			}
 			solving = false;
-			state = scramble;
+			state = scramble.slice();
 			twistyScene.initializeTwisty({
 				type: "cube",
 				dimension: DIMENSION,
@@ -91,6 +91,7 @@
 				moveCallback(that, move, oldState);
 			}
 		}
+		this.keydown = keydown; //debugging
 		var playable = false;
 		// TODO - add to basic game!
 		this.setPlayable = function(playable_) {

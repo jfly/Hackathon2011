@@ -3,6 +3,8 @@ var GameMaster = {};
 (function() {
 
 var games = {};
+GameMaster.games = games; // This is purely for debugging purposes
+
 GameMaster.getGames = function() {
 	return games;
 };
@@ -12,6 +14,7 @@ GameMaster.addGame = function(game) {
 };
 GameMaster.GameMaster = function() {
 	var gui = new GameMasterGui.GameMasterGui(this);
+	this.gui = gui; // debugging
 	var chatter = new Chatter.Chatter(this);
 	var vertSplit = new Split.VerticalSplit(gui.element, chatter.element);
 	$('body').append(vertSplit.element);
