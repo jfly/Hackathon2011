@@ -512,7 +512,6 @@ var GameMasterGui = {};
 					gameInstance.setState(moveState.oldState);
 				}
 				assert(gameInstance.isLegalMove(moveState.move));
-				console.log(moveState.move);
 				gameInstance.applyMove(moveState.move);
 			}
 			that.gameStateChanged(user.clientId);
