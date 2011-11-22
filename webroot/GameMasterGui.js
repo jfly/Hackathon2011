@@ -8,9 +8,9 @@ var GameMasterGui = {};
 
 	
 	// These following are just for development!
-	var DEFAULT_GAME = '3x3x3';
-	var NO_READY_SET_GO_IF_INSPECTION = true;
-	var DEFAULT_INSPECTION = 2;
+	//var DEFAULT_GAME = '3x3x3';
+	//var NO_READY_SET_GO_IF_INSPECTION = true;
+	//var DEFAULT_INSPECTION = 2;
 
 	// TODO - loading with a scrollbar looks weird
 
