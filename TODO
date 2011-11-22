@@ -27,6 +27,7 @@
 	+"me: " instead of "Nick: " for your own chats
 +add a ready, set, go?
 	+show timer on each board
++fix innacurrate timing bug
 
 -save game configuration
 	-cookies for now, accounts later?
@@ -37,7 +38,7 @@
 
 -editing name while server info gets set is really annoying
 -users joining while solving gets screwy
--fix innacurrate timing bug
+-change protocol to send human readable turns rather than json
 
 -RAs and shit, graphs!
 

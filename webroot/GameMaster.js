@@ -122,8 +122,8 @@ GameMaster.GameMaster = function() {
 		now.handleChannelMembers(clientId_user_);
 	};
 
-	now.handleMoveState = function(nick, moveState, timestamp, startstamp) {
-		gui.handleMoveState(nick, moveState, timestamp, startstamp);
+	now.handleMoveState = function(nick, moveState) {
+		gui.handleMoveState(nick, moveState);
 	};
 
 	now.handleMessages = function(messages) {
@@ -149,9 +149,8 @@ GameMaster.GameMaster = function() {
 		now.sendRandomState(scramble, errorHandler('sendRandomState'));
 	};
 
-	this.sendMoveState = function(moveState, startstamp) {
-		var timestamp = new Date().getTime();
-		now.sendMoveState(moveState, timestamp, startstamp, errorHandler('sendMoveState'));
+	this.sendMoveState = function(moveState) {
+		now.sendMoveState(moveState, errorHandler('sendMoveState'));
 	};
 
 	this.joinChannel = function(nick_, channelName_) {
@@ -159,7 +158,7 @@ GameMaster.GameMaster = function() {
 		var desiredChannelName = channelName_ || that.getChannelName() || "PimpsAtSea";
 		if(desiredNick == that.getMyNick() && desiredChannelName == that.getChannelName()) {
 			StatusBar.setError('joinChannel', null);
-			StatusBar.setError('andleGameInfo', null);
+			StatusBar.setError('handleGameInfo', null);
 			StatusBar.setError('handleChannelMembers', null);
 			return;
 		}

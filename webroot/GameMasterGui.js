@@ -8,9 +8,9 @@ var GameMasterGui = {};
 
 	
 	// These following are just for development!
-	//var DEFAULT_GAME = '3x3x3';
-	//var NO_READY_SET_GO_IF_INSPECTION = true;
-	//var DEFAULT_INSPECTION = 2;
+	var DEFAULT_GAME = '3x3x3';
+	var NO_READY_SET_GO_IF_INSPECTION = true;
+	var DEFAULT_INSPECTION = 2;
 
 	// TODO - loading with a scrollbar looks weird
 
@@ -151,14 +151,29 @@ var GameMasterGui = {};
 					gamesDiv.appendChild(containerDiv);
 				}
 				if(!gameBoard.gameInstance) {
-					// TODO get rid of this gameStateChangedCallback?
-					// need some way of detecting when a game with animation
-					// is considered finished
-					var gameInstance = new game(moveApplied, that.gameStateChanged.bind(null, clientId));
 					var myClientId = gameMaster.getMyself().clientId;
+					var moveCallback = null;
 					if(clientId == myClientId) {
+						moveCallback = function(game, move, oldState) {
+							var moveState = {
+								move: move,
+								oldState: oldState,
+								finished: game.isFinished(),
+								timestamp: new Date().getTime(),
+								startstamp: startstamp
+							};
+							gameMaster.sendMoveState(moveState);
+							that.moveApplied(moveState, myClientId);
+						};
+					}
+
+					var gameInstance = new game(moveCallback);
+					if(clientId == myClientId) {
+						// TODO - it should be possible to set a moveCallback
+						// *after* the game has been constructed
 						gameInstance.setPlayable(true);
 					}
+
 					gameBoard.gameInstance = gameInstance;
 					gameBoard.gameDiv = gameInstance.getDiv();
 					gameBoard.div.appendChild(gameBoard.gameDiv);
@@ -336,10 +351,6 @@ var GameMasterGui = {};
 			}
 			assert(boardIndex == clientIds.length);
 		}
-		function moveApplied(game, move, oldState) {
-			var moveState = { move: move, oldState: oldState};
-			gameMaster.sendMoveState(moveState, startstamp);
-		}
 
 		var readySetGoDiv = $(document.createElement('div'));
 		readySetGoDiv.addClass("readySetGo");
@@ -502,35 +513,29 @@ var GameMasterGui = {};
 			}
 			return true;
 		}
-		this.handleMoveState = function(user, moveState, timestamp, startstamp) {
+		this.handleMoveState = function(user, moveState) {
 			var gameBoard = gameBoards[user.clientId];
 			assert(gameBoard, user.clientId + " doesn't appear in " + Object.keys(gameBoards));
 			var gameInstance = gameBoard.gameInstance;
 			assert(gameInstance);
 			if(user.clientId != gameMaster.getMyself().clientId) {
 				if(!deepEquals(gameInstance.getState(), moveState.oldState)) {
+					assert(gameInstance.getState().length == 0);
 					gameInstance.setState(moveState.oldState);
 				}
 				assert(gameInstance.isLegalMove(moveState.move));
 				gameInstance.applyMove(moveState.move);
+				that.moveApplied(moveState, user.clientId);
 			}
-			that.gameStateChanged(user.clientId);
 		};
-		this.gameStateChanged = function(clientId) {
-			// TODO - this hack means the timing isn't accurate across clients!
-			var timestamp = new Date().getTime();
-
+		this.moveApplied = function(moveState, clientId) {
 			// TODO - deal with games that start out finished?
 
-			// Note that we can't necessarily check if the game is solved
-			// here because isFinished() may not return true until the
-			// animation has completed.
-			// TODO - update comment above!
 			var gameBoard = gameBoards[clientId];
 			assert(gameBoard, clientId + " doesn't appear in " + Object.keys(gameBoards));
 			var gameInstance = gameBoard.gameInstance;
-			if(gameInstance.isFinished() && !gameBoard.solveTime) {
-				var totalTime = (timestamp - startstamp)/1000;
+			if(moveState.finished && !gameBoard.solveTime) {
+				var totalTime = (moveState.timestamp - moveState.startstamp)/1000;
 				gameBoard.solveTime = totalTime;
 			}
 		};

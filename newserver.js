@@ -290,9 +290,9 @@ everyone.now.sendRandomState = auth_admin(function(user, randomState, callback) 
 	channel.getGroup().now.handleRandomState(randomState);
 });
 
-everyone.now.sendMoveState = auth(function(user, moveState, timestamp, startstamp, callback) {
+everyone.now.sendMoveState = auth(function(user, moveState, callback) {
 	var channel = user.channel;
-	channel.getGroup().now.handleMoveState(user, moveState, timestamp, startstamp);
+	channel.getGroup().now.handleMoveState(user, moveState);
 });
 
 everyone.now.sendMessage = auth(function(user, msg) {

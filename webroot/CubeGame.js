@@ -45,21 +45,26 @@
 
 	function CubeGameCreator(DIMENSION) {
 
-	var CubeGame = function(moveCallback, gameStateChangedCallback) {
-		var solving = null;
+	var CubeGame = function(moveCallback) {
+		var scrambling = false;
 		var state = [];
 		this.setState = function(scramble) {
 			if(scramble == null) {
 				scramble = [];
 			}
-			solving = false;
+			// Note that we make a copy of scramble.
+			// We're going to mutate the state array as turns are applied,
+			// and we don't want to screw up the copy of the array our caller
+			// was so kind to pass to us.
 			state = scramble.slice();
+			scrambling = true;
 			twistyScene.initializeTwisty({
 				type: "cube",
 				dimension: DIMENSION,
 				stickerWidth: 1.7,
 			});
 			twistyScene.applyMoves(scramble);
+			scrambling = false;
 		};
 		function keydown(e) {
 			assert(playable);
@@ -83,13 +88,8 @@
 				return;
 			}
 
-			// TODO
-			var oldState = that.getState();
 			assert(that.isLegalMove(move));
 			that.applyMove(move);
-			if(moveCallback) {
-				moveCallback(that, move, oldState);
-			}
 		}
 		this.keydown = keydown; //debugging
 		var playable = false;
@@ -144,8 +144,6 @@
 
 		function resize() {}
 		this.isLegalMove = function(move) {
-			// This isn't really necessary for such a simple game, but
-			// it does give us some confidence that stuff is working.
 			return true;
 		};
 		this.getDiv = function() {
@@ -156,9 +154,21 @@
 		gameDiv.css('position', 'relative');
 		// TODO - actually wait for twistyjs to load?
 		var twistyScene = new twistyjs.TwistyScene();
+		var oldStates = [];
 		twistyScene.addMoveListener(function(move, moveStarted) {
-			if(!moveStarted) {
-				gameStateChangedCallback();
+			if(scrambling) {
+				return;
+			}
+			if(moveStarted) {
+				// Note that this assumes that turns finish animating
+				// in the order they were started. This seems like a reasonable
+				// assumption.
+				oldStates.push(twistyScene.getState());
+			} else {
+				if(moveCallback) {
+					var oldState = oldStates.shift();
+					moveCallback(that, move, oldState);
+				}
 			}
 		});
 
