@@ -520,7 +520,13 @@ var GameMasterGui = {};
 			assert(gameInstance);
 			if(user.clientId != gameMaster.getMyself().clientId) {
 				if(!deepEquals(gameInstance.getState(), moveState.oldState)) {
-					assert(gameInstance.getState().length == 0);
+					// This is a tricky assertion here. Assuming no turns are 
+					// dropped by nowjs, we should have a perfect image
+					// of what all our fellow cubers are doing. However, Patricia
+					// says she has witnessed this happening, so I'm commenting
+					// it out. This decision should be revisted by someone with a
+					// PHD in node and nowjs.
+					//assert(gameInstance.getState().length == 0);
 					gameInstance.setState(moveState.oldState);
 				}
 				assert(gameInstance.isLegalMove(moveState.move));
