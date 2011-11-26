@@ -28,6 +28,7 @@
 +add a ready, set, go?
 	+show timer on each board
 +fix innacurrate timing bug
++change protocol to send human readable turns rather than json
 
 -save game configuration
 	-cookies for now, accounts later?
@@ -37,8 +38,6 @@
 	-if the user types in empty nick or channelname, nothing happens
 
 -editing name while server info gets set is really annoying
--users joining while solving gets screwy
--change protocol to send human readable turns rather than json
 
 -RAs and shit, graphs!
 -strip HTML tags from chats
@@ -47,8 +46,9 @@
 
 -analytics! STORE EVERYTHING!
 	-smarter server, keep track of what is going on, send all state to clients
-		-besides simplifying some stuff, this also solves the problem where the game "changes"
+		-besides simplifying some stuff, this also solves the problem where the game "changes" (users joining while solving gets screwy)
 		 while inspecting (because the admin sends out gratuitous gameinfos when people connect)
+
 
 **** Assertions ****
 
