@@ -74,8 +74,11 @@ var GameMasterGui = {};
 		scrambleButton.type = 'button';
 		$(scrambleButton).click(function(e) {
 			// TODO - what if they click scramble before we've generated boards?
-			var scramble = gameMaster.getGame().generateRandomState();
-			gameMaster.sendRandomState(scramble);
+			var myClientId = gameMaster.getMyself().clientId;
+			var myBoard = gameBoards[myClientId];
+			assert(myBoard);
+			var randomState = myBoard.gameInstance.generateRandomState();
+			gameMaster.sendRandomState(randomState);
 		});
 		infoDiv.appendChild(scrambleButton);
 

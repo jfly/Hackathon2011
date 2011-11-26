@@ -47,30 +47,17 @@
 
 	var CubeGame = function(moveCallback) {
 		var scrambling = false;
-		var state = [];
-		this.setState = function(scramble) {
-			if(scramble == null) {
-				scramble = [];
-			}
-			// Note that we make a copy of scramble.
-			// We're going to mutate the state array as turns are applied,
-			// and we don't want to screw up the copy of the array our caller
-			// was so kind to pass to us.
-			state = scramble.slice();
+		var state = null;
+		this.setState = function(state) {
+			state = state;
 			scrambling = true;
-			twistyScene.initializeTwisty({
-				type: "cube",
-				dimension: DIMENSION,
-				stickerWidth: 1.7,
-			});
-			twistyScene.applyMoves(scramble);
+			twistyScene.setState(state);
 			scrambling = false;
 		};
 		function keydown(e) {
 			assert(playable);
 
-			// We don't want to turn the cube
-			// if we're in a textarea or input field.
+			// We don't want to turn the cube if we're in a textarea or input field.
 			var focusedEl = document.activeElement.nodeName.toLowerCase();
 			var isEditing = focusedEl == 'textarea' || focusedEl == 'input';
 			if(isEditing) {
@@ -119,17 +106,19 @@
 			// This is because the game framework uses this method to animate
 			// other people's games. TODO - move comment to basic game
 			assert(that.isLegalMove(move));
-			state.push(move);
-			twistyScene.addMoves([move]);
+			twistyScene.addMoves(move);
+			state = twistyScene.getFinalState();
 		};
 		this.getState = function() {
-			// Return a copy so it won't get mutated outside,
-			// or be affected by future turns inside.
-			return state.slice();
+			return state;
 		};
 		this.isFinished = function() {
 			var twisty = twistyScene.getTwisty();
 			return twisty.isSolved(twisty);
+		};
+		this.generateRandomState = function() {
+			var twisty = twistyScene.getTwisty();
+			return twisty.generateRandomState(twisty);
 		};
 
 		var size = null;
@@ -154,6 +143,12 @@
 		gameDiv.css('position', 'relative');
 		// TODO - actually wait for twistyjs to load?
 		var twistyScene = new twistyjs.TwistyScene();
+		twistyScene.initializeTwisty({
+			type: "cube",
+			dimension: DIMENSION,
+			stickerWidth: 1.7,
+		});
+		state = twistyScene.getState();
 		var oldStates = [];
 		twistyScene.addMoveListener(function(move, moveStarted) {
 			if(scrambling) {
@@ -165,8 +160,8 @@
 				// assumption.
 				oldStates.push(twistyScene.getState());
 			} else {
+				var oldState = oldStates.shift();
 				if(moveCallback) {
-					var oldState = oldStates.shift();
 					moveCallback(that, move, oldState);
 				}
 			}
@@ -179,27 +174,6 @@
 	};
 
 	// The following is a hack that gives us static methods on the game constructor.
-	CubeGame.generateRandomState = function() {
-		// TODO - this code is copied from twisty.js
-		// TODO should the 3x3 "moves" be the internal twisty.js representation?
-		// i think i'd rather that they be standard notation
-		var dim = DIMENSION;
-		var n = 32;
-		var newMoves = [];
-
-		for (var i=0; i<n; i++) {
-			var random1 = 1 + Math.floor(Math.random()*dim/2);
-			var random2 = random1 + Math.floor(Math.random()*dim/2);
-			var random3 = Math.floor(Math.random()*6);
-			var random4 = [-2, -1, 1, 2][Math.floor(Math.random()*4)];
-
-			var newMove = [random1, random2, ["U", "L", "F", "R", "B", "D"][random3], random4];
-
-			newMoves.push(newMove);
-		}
-
-		return newMoves;
-	};
 	CubeGame.getPreferredSize = function() {
 		return CubeGame.getMinimumSize();
 	};

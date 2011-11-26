@@ -41,10 +41,14 @@
 -change protocol to send human readable turns rather than json
 
 -RAs and shit, graphs!
+-strip HTML tags from chats
 
 **** Server side ****
 
 -analytics! STORE EVERYTHING!
+	-smarter server, keep track of what is going on, send all state to clients
+		-besides simplifying some stuff, this also solves the problem where the game "changes"
+		 while inspecting (because the admin sends out gratuitous gameinfos when people connect)
 
 **** Assertions ****
 
