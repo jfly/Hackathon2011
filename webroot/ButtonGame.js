@@ -80,7 +80,16 @@
 				assert(size.width >= minimumSize.width);
 				assert(size.height >= minimumSize.height);
 				resize();
-			}
+			};
+			this.generateRandomState = function() {
+				var cellCount = WIDTH*HEIGHT;
+				var scramble = [];
+				for(var i = 0; i < cellCount; i++) {
+					scramble.push(i);
+				}
+				scramble.sort(function() { return 0.5-Math.random(); });
+				return scramble;
+			};
 			this.getState = function() {
 				var state = [];
 				for(var i = 0; i < buttons.length; i++) {
@@ -155,15 +164,6 @@
 			this.setState(null);
 		};
 
-		ButtonGame.generateRandomState = function() {
-			var cellCount = WIDTH*HEIGHT;
-			var scramble = [];
-			for(var i = 0; i < cellCount; i++) {
-				scramble.push(i);
-			}
-			scramble.sort(function() { return 0.5-Math.random(); });
-			return scramble;
-		};
 		ButtonGame.getPreferredSize = function() {
 			return { width: WIDTH*50, height: HEIGHT*50 };
 		};

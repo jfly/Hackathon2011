@@ -58,6 +58,9 @@
 			// TODO - this doesn't take the horizontal width of the text into account
 			gameButton.css('font-size', .75*size.height);
 		};
+		this.generateRandomState = function() {
+			return Math.floor(Math.random()*MAX_SCRAMBLE);
+		};
 
 		function resize() {}
 		this.isLegalMove = function(move) {
@@ -92,9 +95,6 @@
 	};
 
 	// The following is a hack that gives us static methods on the game constructor.
-	ClickGame.generateRandomState = function() {
-		return Math.floor(Math.random()*MAX_SCRAMBLE);
-	};
 	ClickGame.getPreferredSize = function() {
 		return ClickGame.getMinimumSize();
 	};
