@@ -135,6 +135,42 @@ function User(nick_, clientId_) {
 		this.admin = isAdmin;
 	};
 
+  var moves = [];
+  var lastMoveTimestamp = null;
+
+  var randomState = null;
+  this.setRandomState = function(state) {
+    randomState = state;
+    moves = [];
+    lastMoveTimestamp = null;
+  };
+
+  this.addMove = function(moveState) {
+    if(!randomState) {
+      // We don't keep track of turns for puzzles that
+      // aren't being solved.
+      return;
+    }
+    var lastTime;
+    if(moves.length == 0) {
+      assert.ok(lastMoveTimestamp == null);
+      lastMoveTimestamp = moveState.timestamp;
+    }
+    moves.push({ move: moveState.move, delta: moveState.timestamp-lastMoveTimestamp });
+    lastMoveTimestamp = moveState.timestamp;
+    if(moveState.finished) {
+      var solveMillis = lastMoveTimestamp - moveState.startstamp;
+      console.log(moves);//<<<
+      console.log(randomState);
+      console.log(that.channel.gameInfo);
+      console.log(solveMillis);//<<<
+      // TODO - store inspection time!!!
+
+      // We clear randomState because we have now solved the puzzle.
+      randomState = null;
+    }
+  };
+
 	var that = this;
 }
 
@@ -204,6 +240,14 @@ function Channel(channelName) {
 		}
 		that.getGroup().now.handleMessages([msg]);
 	};
+
+  this.setRandomState = function(randomState) {
+    var nicks = channelUsers.getNicks();
+    for(var i = 0; i < nicks.length; i++) {
+      var user = channelUsers.getUserByNick(nicks[i]);
+      user.setRandomState(randomState);
+    }
+  };
 
 	this.getGroup = function() {
 		return nowjs.getGroup(channelName);
@@ -284,16 +328,19 @@ function auth_admin(func) {
 everyone.now.sendGameInfo = auth_admin(function(user, gameInfo, callback) {
 	var channel = user.channel;
 	channel.getGroup().now.handleGameInfo(gameInfo);
+  channel.gameInfo = gameInfo;
 });
 
 everyone.now.sendRandomState = auth_admin(function(user, randomState, callback) {
 	var channel = user.channel;
 	channel.getGroup().now.handleRandomState(randomState);
+  channel.setRandomState(randomState);
 });
 
 everyone.now.sendMoveState = auth(function(user, moveState, callback) {
 	var channel = user.channel;
 	channel.getGroup().now.handleMoveState(user, moveState);
+  user.addMove(moveState);
 });
 
 everyone.now.sendMessage = auth(function(user, msg) {
