@@ -39,9 +39,8 @@ function log(statCode, url, ip, err) {
 httpServer.listen(8001);
 
 // TODO - i've disabled websockets because they're making chrome crash...
-// TODO - i've disabled websockets because nginx doesn't support them
-//var everyone = nowjs.initialize(httpServer);
-var everyone = nowjs.initialize(httpServer, {socketio: {transports: ['xhr-polling', 'jsonp-polling']}});
+var everyone = nowjs.initialize(httpServer);
+//var everyone = nowjs.initialize(httpServer, {socketio: {transports: ['xhr-polling', 'jsonp-polling']}});
 
 function UserSet() {
 	this.nick_user = {};
