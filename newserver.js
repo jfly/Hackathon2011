@@ -339,7 +339,7 @@ everyone.now.sendRandomState = auth_admin(function(user, randomState, callback) 
 everyone.now.sendMoveState = auth(function(user, moveState, callback) {
 	var channel = user.channel;
 	channel.getGroup().now.handleMoveState(user, moveState);
-  user.addMove(moveState);
+	user.addMove(moveState);
 });
 
 everyone.now.sendMessage = auth(function(user, msg) {
