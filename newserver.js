@@ -3,6 +3,9 @@ var nowjs = require('now');
 var url = require("url");
 var sys = require('sys');
 var assert = require('assert');
+var conf = require('./conf.js');
+var mongoose = require('mongoose');
+mongoose.connect(conf.mongo.uri);
 
 WEBROOT = 'webroot'
 MESSAGE_RING_SIZE = 100;
@@ -36,7 +39,26 @@ function log(statCode, url, ip, err) {
     logStr += ' - ' + err;
   console.log(logStr);
 }
-httpServer.listen(8001);
+//mongodb stuff
+var Schema = mongoose.Schema;
+var ObjectId = Schema.ObjectId;
+var TurnSchema = new Schema({
+  move: String,
+  delta: Number
+});
+  
+var SolveSchema = new Schema({
+  turns:[TurnSchema],
+  gameName: String,
+  inspectSec: Number,
+  solveMillis: Number
+});
+
+//initializing models
+var Turn = mongoose.model('Turn', TurnSchema);
+var Solve = mongoose.model('Solve', SolveSchema);
+
+httpServer.listen(conf.server.port);
 
 // TODO - i've disabled websockets because they're making chrome crash...
 var everyone = nowjs.initialize(httpServer);
@@ -145,6 +167,7 @@ function User(nick_, clientId_) {
   };
 
   this.addMove = function(moveState) {
+    console.log("game info " + JSON.stringify(that.channel.gameInfo));
     if(!randomState) {
       // We don't keep track of turns for puzzles that
       // aren't being solved.
@@ -155,18 +178,31 @@ function User(nick_, clientId_) {
       assert.ok(lastMoveTimestamp == null);
       lastMoveTimestamp = moveState.timestamp;
     }
-    moves.push({ move: moveState.move, delta: moveState.timestamp-lastMoveTimestamp });
+    var turn = new Turn({ move: moveState.move, delta: moveState.timestamp-lastMoveTimestamp});
+    moves.push(turn);
     lastMoveTimestamp = moveState.timestamp;
     if(moveState.finished) {
       var solveMillis = lastMoveTimestamp - moveState.startstamp;
+      var storeObject = {
+        turns: moves,
+        gameName: that.channel.gameInfo.gameName,
+        inspectSec: that.channel.gameInfo.inspectSeconds,
+        solveMillis: solveMillis 
+      };
+      var solveInstance = new Solve(storeObject);
       console.log(moves);//<<<
       console.log(randomState);
       console.log(that.channel.gameInfo);
       console.log(solveMillis);//<<<
       // TODO - store inspection time!!!
+      solveInstance.save(function(err){
+              // We clear randomState because we have now solved the puzzle.
+        randomState = null;
 
-      // We clear randomState because we have now solved the puzzle.
-      randomState = null;
+        if(err){
+          console.log("db error : " + err);
+        }
+      });
     }
   };
 
