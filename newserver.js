@@ -7,6 +7,12 @@ var conf = require('./conf.js');
 var mongoose = require('mongoose');
 mongoose.connect(conf.mongo.uri);
 
+/*mongoose.addListener('error',function(errObj,scope_of_error) {
+	console.log(errObj);
+	console.log(scope_of_error);
+});*/
+
+
 WEBROOT = 'webroot'
 MESSAGE_RING_SIZE = 100;
 
@@ -195,13 +201,14 @@ function User(nick_, clientId_) {
       console.log(that.channel.gameInfo);
       console.log(solveMillis);//<<<
       // TODO - store inspection time!!!
+	  // We clear randomState because we have now solved the puzzle.
+	  randomState = null;
       solveInstance.save(function(err){
-              // We clear randomState because we have now solved the puzzle.
-        randomState = null;
+		  console.log("SAVED SOME SHIT SOMEWHERE");
 
-        if(err){
-          console.log("db error : " + err);
-        }
+		  if(err){
+			  console.log("db error : " + err);
+		  }
       });
     }
   };
