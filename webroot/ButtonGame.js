@@ -87,7 +87,14 @@
 				for(var i = 0; i < cellCount; i++) {
 					scramble.push(i);
 				}
-				scramble.sort(function() { return 0.5-Math.random(); });
+				// Fisher-Yates! Thanks to gnehzr for pointing out how
+				// bad it is to shuffle using a sorting algorithm.
+				for(var i = scramble.length - 1; i >= 0; i--) {
+					var j = Math.floor(Math.random()*i);
+					var temp = scramble[i];
+					scramble[i] = scramble[j];
+					scramble[j] = temp;
+				}
 				return scramble;
 			};
 			this.getState = function() {
