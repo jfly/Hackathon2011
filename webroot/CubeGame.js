@@ -118,7 +118,6 @@
 		};
 		this.generateRandomState = function() {
 			var twisty = twistyScene.getTwisty();
-			return twisty.stringToAlg("R2 F2 L2 R2 U B2 D2 F2 U F2 D R' D2 U F' R' U' B2 U' F' R2");//<<< TODO - remove this
 			return twisty.generateRandomState(twisty);
 		};
 
